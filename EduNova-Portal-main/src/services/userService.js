@@ -4,61 +4,30 @@ import { apiClient } from '../lib/apiClient';
  * Fetch current user profile from PostgreSQL
  */
 export const getUserProfile = async () => {
-  try {
-    const res = await apiClient('/users/profile');
-    if (res.data) {
-      localStorage.setItem('edunova_user', JSON.stringify(res.data));
-      return res.data;
-    }
-  } catch (error) {
-    console.warn('Falling back to local session:', error.message);
-  }
-
-  const stored = localStorage.getItem('edunova_user');
-  return stored ? JSON.parse(stored) : null;
+  const res = await apiClient('/users/profile');
+  return res.data || null;
 };
 
 /**
  * Update user profile in PostgreSQL
  */
 export const updateUserProfile = async (updates) => {
-  const stored = typeof window !== 'undefined' ? localStorage.getItem('edunova_user') : null;
-  const currentUser = stored ? JSON.parse(stored) : {};
-  const localMerged = { ...currentUser, ...updates };
-
-  try {
-    const res = await apiClient('/users/profile', {
-      method: 'PUT',
-      body: JSON.stringify(updates),
-    });
-
-    if (res?.data) {
-      const serverMerged = { ...localMerged, ...res.data };
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('edunova_user', JSON.stringify(serverMerged));
-      }
-      return serverMerged;
-    }
-  } catch (error) {
-    console.warn('Failed to update profile on backend, persisting locally:', error.message);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('edunova_user', JSON.stringify(localMerged));
-    }
-    return localMerged;
-  }
-
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('edunova_user', JSON.stringify(localMerged));
-  }
-  return localMerged;
+  const res = await apiClient('/users/profile', {
+    method: 'PUT',
+    body: JSON.stringify(updates),
+  });
+  return res?.data || null;
 };
 
 /**
  * Add XP to user profile
  */
-export const addXp = async (amount) => {
+export const addXp = async (amount, sourceTitle = 'Learning Activity') => {
   try {
-    const res = await apiClient('/gamification/streak', { method: 'POST' });
+    const res = await apiClient('/gamification/xp', {
+      method: 'POST',
+      body: JSON.stringify({ amount, sourceTitle }),
+    });
     return res.data;
   } catch (error) {
     return null;

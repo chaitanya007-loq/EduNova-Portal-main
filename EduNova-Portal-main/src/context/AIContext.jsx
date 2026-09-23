@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { askSageAI } from '../services/aiService';
+import { aiService } from '../services/ai/aiService';
 import { getChatHistory, saveChatMessage, clearChatHistory } from '../services/chatService';
 
 const AIContext = createContext();
@@ -9,9 +10,22 @@ export const AIProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [isTyping, setIsTyping] = useState(false);
   const [activeContext, setActiveContext] = useState({});
+  const [conversationId, setConversationId] = useState(null);
 
   useEffect(() => {
-    setMessages(getChatHistory());
+    const loadHistory = async () => {
+      try {
+        const response = await aiService.getHistory();
+        const serverMessages = (response.history || []).reverse().flatMap((turn) => [
+          { id: `${turn.id}_user`, sender: 'user', type: 'text', text: turn.prompt, timestamp: turn.createdAt },
+          { id: `${turn.id}_sage`, sender: 'sage', type: 'text', text: turn.response, timestamp: turn.createdAt },
+        ]);
+        setMessages(serverMessages);
+      } catch (error) {
+        setMessages(getChatHistory());
+      }
+    };
+    loadHistory();
   }, []);
 
   const toggleAIChat = useCallback(() => setIsOpen((prev) => !prev), []);
@@ -35,6 +49,7 @@ export const AIProvider = ({ children }) => {
 
     try {
       const response = await askSageAI(text, updated, mergedContext);
+      if (response.conversationId) setConversationId(response.conversationId);
       
       const isQuizSetup = response.data && (response.data.isQuizSetup || response.data.isConfigurator);
       const isQuizType = response.type === 'quiz' || (response.data && response.data.questions && response.data.questions.length > 0);

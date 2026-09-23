@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -45,6 +45,12 @@ import { GameCenterPage } from './pages/Games/GameCenterPage';
 import { ServerUnavailableBanner } from './components/common/ServerUnavailableBanner';
 
 export default function App() {
+  useEffect(() => {
+    ['edunova_user', 'edunova_active_learner_profile', 'edunova_missions', 'edunova_xp'].forEach((key) => {
+      localStorage.removeItem(key);
+    });
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>

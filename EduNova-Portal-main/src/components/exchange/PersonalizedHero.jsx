@@ -5,7 +5,7 @@ import { useDynamicGreeting } from '../../hooks/useDynamicGreeting';
 export const PersonalizedHero = ({ learner, onSearch }) => {
   const [searchInput, setSearchInput] = useState('');
   const learnerType = learner?.learnerType || 'college';
-  const userName = learner?.name || (learnerType === 'school' ? 'Aarav Sharma' : 'Kavya Shah');
+  const userName = learner?.name || 'Learner';
   const userTitle = learner?.title || (learnerType === 'school' ? 'Class 10 CBSE Student' : 'B.Tech CSE Student');
   const dynamicGreeting = useDynamicGreeting(userName);
 

@@ -262,11 +262,6 @@ export const AuthProvider = ({ children }) => {
   const updateUser = useCallback((updatedData) => {
     setUser((prev) => {
       const merged = prev ? { ...prev, ...updatedData } : updatedData;
-      try {
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('edunova_user', JSON.stringify(merged));
-        }
-      } catch (e) {}
       return merged;
     });
   }, [setUser]);

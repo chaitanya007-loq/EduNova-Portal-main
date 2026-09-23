@@ -18,6 +18,7 @@ const { buildQuizPrompt } = require('../ai/prompts/quizGenPrompt');
 const { buildWeakTopicPlanPrompt } = require('../ai/prompts/weakTopicPrompt');
 const { validateQuizResponse, validateWeakTopicPlanResponse } = require('../ai/responseValidator');
 const prisma = require('../config/db');
+const aiService = require('../services/aiService');
 
 class AiController {
   /**
@@ -26,7 +27,7 @@ class AiController {
    */
   async chat(req, res, next) {
     try {
-      const { message, history = [], stream = true } = req.body;
+      const { message, conversationId = null } = req.body;
 
       if (!message || typeof message !== 'string' || !message.trim()) {
         return res.status(400).json({
@@ -35,127 +36,16 @@ class AiController {
         });
       }
 
-      // 1. Build hyper-personalized student context from PostgreSQL
-      const studentContext = await contextBuilder.buildStudentContext(req.user.id);
-      const systemInstruction = await contextBuilder.getTutorSystemInstruction(req.user.id);
-
-      const isStreamRequested =
-        stream === true ||
-        req.headers.accept?.includes('text/event-stream') ||
-        req.query.stream === 'true';
-
-      // ── STREAMING MODE (SSE) ────────────────────────────────────────────────
-      if (isStreamRequested) {
-        res.writeHead(200, {
-          'Content-Type': 'text/event-stream',
-          'Cache-Control': 'no-cache, no-transform',
-          Connection: 'keep-alive',
-          'X-Accel-Buffering': 'no',
-        });
-        if (typeof res.flushHeaders === 'function') {
-          res.flushHeaders();
-        }
-
-        // Send initial connection packet
-        res.write(
-          `data: ${JSON.stringify({
-            type: 'meta',
-            model: geminiProvider.modelName,
-            student: {
-              name: studentContext.studentName,
-              level: studentContext.level,
-              weakTopics: studentContext.weakTopics,
-            },
-          })}\n\n`
-        );
-
-        let fullResponse = '';
-
-        try {
-          await geminiProvider.generateStream({
-            systemInstruction,
-            history,
-            message: message.trim(),
-            onChunk: (chunkText) => {
-              fullResponse += chunkText;
-              res.write(`data: ${JSON.stringify({ type: 'chunk', text: chunkText })}\n\n`);
-            },
-          });
-
-          // Persist Q&A turn to ai_conversations in PostgreSQL
-          let conversationRecord = null;
-          try {
-            conversationRecord = await prisma.aiConversation.create({
-              data: {
-                userId: req.user.id,
-                title: message.trim().slice(0, 80),
-                prompt: message.trim(),
-                response: fullResponse.trim(),
-                metadata: {
-                  model: geminiProvider.modelName,
-                  weakTopicsTargeted: studentContext.weakTopics,
-                  educationStage: studentContext.learnerType,
-                },
-              },
-            });
-          } catch (dbErr) {
-            console.error('[AI Chat DB Save Warning]', dbErr.message);
-          }
-
-          res.write(
-            `data: ${JSON.stringify({
-              type: 'done',
-              conversationId: conversationRecord?.id || null,
-              fullResponse: fullResponse.trim(),
-            })}\n\n`
-          );
-          res.write('data: [DONE]\n\n');
-          return res.end();
-        } catch (streamErr) {
-          res.write(`data: ${JSON.stringify({ type: 'error', message: streamErr.message })}\n\n`);
-          return res.end();
-        }
-      }
-
-      // ── STANDARD JSON MODE (Non-Streaming) ──────────────────────────────────
-      const reply = await geminiProvider.generateChatReply({
-        systemInstruction,
-        history,
-        message: message.trim(),
+      const result = await aiService.chat({
+        userId: req.user.id,
+        message,
+        conversationId,
       });
-
-      let conversationRecord = null;
-      try {
-        conversationRecord = await prisma.aiConversation.create({
-          data: {
-            userId: req.user.id,
-            title: message.trim().slice(0, 80),
-            prompt: message.trim(),
-            response: reply.trim(),
-            metadata: {
-              model: geminiProvider.modelName,
-              weakTopicsTargeted: studentContext.weakTopics,
-            },
-          },
-        });
-      } catch (dbErr) {
-        console.error('[AI Chat DB Save Warning]', dbErr.message);
-      }
 
       return res.json({
         success: true,
         message: 'Sage AI response generated',
-        data: {
-          reply: reply.trim(),
-          conversationId: conversationRecord?.id || null,
-          model: geminiProvider.modelName,
-          studentContext: {
-            name: studentContext.studentName,
-            level: studentContext.level,
-            streakDays: studentContext.streakDays,
-            weakTopics: studentContext.weakTopics,
-          },
-        },
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -250,30 +140,16 @@ class AiController {
    */
   async getChatHistory(req, res, next) {
     try {
-      const page = Math.max(1, parseInt(req.query.page, 10) || 1);
-      const limit = Math.max(1, parseInt(req.query.limit, 10) || 20);
-
-      const [history, total] = await Promise.all([
-        prisma.aiConversation.findMany({
-          where: { userId: req.user.id },
-          orderBy: { createdAt: 'desc' },
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-        prisma.aiConversation.count({
-          where: { userId: req.user.id },
-        }),
-      ]);
+      const data = await aiService.getHistory({
+        userId: req.user.id,
+        page: req.query.page,
+        limit: req.query.limit,
+      });
 
       return res.json({
         success: true,
         message: 'Chat history retrieved',
-        data: {
-          history,
-          total,
-          page,
-          totalPages: Math.ceil(total / limit),
-        },
+        data,
       });
     } catch (error) {
       next(error);

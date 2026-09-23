@@ -6,31 +6,50 @@ import { getDynamicAvatar } from '../utils/avatarUtils';
 
 const LearnerContext = createContext();
 
+const createZeroStateLearner = () => ({
+  id: '',
+  name: '',
+  username: '',
+  email: '',
+  phone: '',
+  avatar: '',
+  role: 'STUDENT',
+  learnerType: 'school',
+  title: '',
+  bio: '',
+  xp: 0,
+  level: 1,
+  streakDays: 0,
+  goals: [],
+  weakTopics: [],
+  education: {},
+  projects: [],
+});
+
 export const LearnerProvider = ({ children }) => {
   const { user, updateUser } = useAuth();
-  const [learner, setLearner] = useState(() => learnerService.getProfile());
+  const [learner, setLearner] = useState(createZeroStateLearner);
 
   // Synchronize live user from PostgreSQL / AuthContext into LearnerContext
   useEffect(() => {
     if (user) {
       const activeLearnerType = (user.learnerType || 'school').toLowerCase();
-      const current = learnerService.getProfile();
       const liveProfile = {
-        ...current,
+        ...createZeroStateLearner(),
         id: user.id,
-        name: user.name || current.name || '',
-        email: user.email || current.email || '',
-        phone: user.phone || current.phone || '',
-        username: user.studentUsername || current.username || (user.email ? user.email.split('@')[0] : 'learner'),
-        avatar: getDynamicAvatar(user, current.username),
-        learnerType: activeLearnerType || current.learnerType || 'school',
-        title: current.title || user.title || `${user.learnerType || 'School'} Learner`,
-        bio: current.bio || user.bio || '',
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        username: user.studentUsername || (user.email ? user.email.split('@')[0] : 'learner'),
+        avatar: getDynamicAvatar(user),
+        learnerType: activeLearnerType || 'school',
+        title: user.title || `${user.learnerType || 'School'} Learner`,
+        bio: user.bio || '',
         role: user.role,
         isParent: user.isParent || user.role === 'PARENT',
-        xp: user.learnerProfile?.xp ?? (user.xp || current.xp || 0),
-        level: user.learnerProfile?.level ?? (user.level || current.level || 1),
-        streakDays: user.learnerProfile?.streakDays ?? (user.streakDays || current.streakDays || 0),
+        xp: user.learnerProfile?.xp ?? 0,
+        level: user.learnerProfile?.level ?? 1,
+        streakDays: user.learnerProfile?.streakDays ?? 0,
         goals: Array.isArray(user.learnerProfile?.goals) && user.learnerProfile.goals.length > 0
           ? user.learnerProfile.goals.map((g, i) => {
               if (typeof g === 'object') return g;
@@ -40,16 +59,15 @@ export const LearnerProvider = ({ children }) => {
                 return { id: `goal_${i + 1}`, title: String(g), progress: 0, targetDate: '2026-12-31' };
               }
             })
-          : (current.goals || []),
+          : [],
         weakTopics: Array.isArray(user.learnerProfile?.weakTopics) && user.learnerProfile.weakTopics.length > 0
           ? user.learnerProfile.weakTopics
-          : (current.weakTopics || []),
+          : [],
         education: {
-          ...(current.education || {}),
           ...(user.learnerProfile?.board ? { board: user.learnerProfile.board } : {}),
           ...(user.learnerProfile?.degree ? { degree: user.learnerProfile.degree } : {}),
         },
-        projects: current.projects && current.projects.length > 0 ? current.projects : (user.projects || []),
+        projects: user.projects || [],
       };
 
       setLearner((prev) => {

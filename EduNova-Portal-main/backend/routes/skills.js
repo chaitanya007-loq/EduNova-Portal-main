@@ -1,11 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { requireAuth } = require('../middleware/auth');
+const skillController = require('../controllers/skillController');
 
-// @route   GET /api/skills
-router.get('/', (req, res) => {
-  // TODO: Implement skill listing & exchange
-  res.json({ success: true, message: 'Skills route - to be implemented' });
-});
+router.use(requireAuth);
+router.get('/dna', skillController.getSkillDna);
+router.get('/marketplace', skillController.getMarketplace);
 
 module.exports = router;

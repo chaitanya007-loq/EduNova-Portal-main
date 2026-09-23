@@ -106,6 +106,15 @@ export const SkillDnaPage = () => {
     );
   }
 
+  if (skillDNA.totalLogs === 0) {
+    return (
+      <div className="container" style={{ padding: '64px 24px', textAlign: 'center' }}>
+        <h2 style={{ color: '#fff', marginBottom: '12px' }}>Skill DNA is not mapped yet</h2>
+        <p style={{ color: '#94a3b8', margin: 0 }}>{skillDNA.emptyState}</p>
+      </div>
+    );
+  }
+
   return (
     <div className="container" style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '8px', paddingBottom: '40px' }}>
       

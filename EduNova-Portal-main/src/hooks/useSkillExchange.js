@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   getUserSkillsToTeach,
   getUserSkillsToLearn,
+  getMarketplace,
   addSkillToTeach as addTeach,
   addSkillToLearn as addLearn,
   removeSkillToTeach as removeTeach,
@@ -26,12 +27,13 @@ import { useLearner } from '../context/LearnerContext';
 export const useSkillExchange = () => {
   const { learner, learnerType = 'college' } = useLearner();
 
-  const [teachSkills, setTeachSkills] = useState(() => getUserSkillsToTeach(learnerType));
-  const [learnSkills, setLearnSkills] = useState(() => getUserSkillsToLearn(learnerType));
-  const [requests, setRequests] = useState(() => getExchangeRequests());
-  const [activeExchanges, setActiveExchanges] = useState(() => getActiveExchanges());
+  const [teachSkills, setTeachSkills] = useState([]);
+  const [learnSkills, setLearnSkills] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [activeExchanges, setActiveExchanges] = useState([]);
+  const [marketplace, setMarketplace] = useState([]);
   const [savedUserIds, setSavedUserIds] = useState(() => getSavedMatches());
-  const [stats, setStats] = useState(() => calculateUserStatistics(learnerType));
+  const [stats, setStats] = useState({ skillsTeachCount: 0, skillsWantCount: 0, activeCount: 0, completedCount: 0 });
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -40,7 +42,7 @@ export const useSkillExchange = () => {
 
   const currentUser = {
     id: learner?.id || 'current_user',
-    name: learner?.name || (learnerType === 'school' ? 'Aarav Sharma' : 'Kavya Shah'),
+    name: learner?.name || 'Learner',
     learnerType,
     education: learner?.title || (learnerType === 'school' ? 'Class 10 CBSE' : 'B.Tech CSE'),
     skillsToTeach: teachSkills,
@@ -52,21 +54,40 @@ export const useSkillExchange = () => {
     languages: ['English', 'Hindi']
   };
 
-  const refreshState = useCallback(() => {
-    setTeachSkills(getUserSkillsToTeach(learnerType));
-    setLearnSkills(getUserSkillsToLearn(learnerType));
-    setRequests(getExchangeRequests());
-    setActiveExchanges(getActiveExchanges());
-    setSavedUserIds(getSavedMatches());
-    setStats(calculateUserStatistics(learnerType));
+  const refreshState = useCallback(async () => {
+    const [teach, learn, exchangeRequests, active, saved, statistics, listings] = await Promise.all([
+      getUserSkillsToTeach(learnerType),
+      getUserSkillsToLearn(learnerType),
+      getExchangeRequests(),
+      getActiveExchanges(),
+      Promise.resolve(getSavedMatches()),
+      calculateUserStatistics(learnerType),
+      getMarketplace(),
+    ]);
+    setTeachSkills(teach);
+    setLearnSkills(learn);
+    setRequests(exchangeRequests);
+    setActiveExchanges(active);
+    setSavedUserIds(saved);
+    setStats(statistics);
+    setMarketplace(listings);
   }, [learnerType]);
 
   useEffect(() => {
-    refreshState();
+    refreshState().catch((error) => console.error('Unable to load skill exchange data', error));
   }, [refreshState]);
 
   // Perform AI Natural Language / Keyword match calculation
-  const matchedCandidates = searchMatchesByQuery(searchQuery, currentUser, sampleExchangeUsers);
+  const marketplaceUsers = marketplace.map((listing) => ({
+    id: listing.userId,
+    name: listing.name,
+    avatar: listing.avatar,
+    learnerType: listing.learnerType,
+    skillsToTeach: [{ name: listing.skillOffered }],
+    skillsToLearn: [{ name: listing.skillWanted }],
+    verified: true,
+  }));
+  const matchedCandidates = searchMatchesByQuery(searchQuery, currentUser, marketplaceUsers);
 
   const filteredCandidates = matchedCandidates.filter(c => {
     if (filters.wantSkill !== 'All') {
@@ -81,43 +102,41 @@ export const useSkillExchange = () => {
   });
 
   const sortedCandidates = sortMatches(filteredCandidates, sortBy);
-  const savedCandidates = sampleExchangeUsers.filter(u => savedUserIds.includes(u.id));
+  const savedCandidates = marketplaceUsers.filter(u => savedUserIds.includes(u.id));
 
   // Handler actions
-  const handleAddSkillToTeach = (skillObj) => {
-    addTeach(skillObj, learnerType);
-    refreshState();
+  const handleAddSkillToTeach = async (skillObj) => {
+    await addTeach(skillObj, learnerType);
+    await refreshState();
   };
 
-  const handleRemoveSkillToTeach = (id) => {
-    removeTeach(id, learnerType);
-    refreshState();
+  const handleRemoveSkillToTeach = async (id) => {
+    await removeTeach(id, learnerType);
+    await refreshState();
   };
 
-  const handleAddSkillToLearn = (skillObj) => {
-    addLearn(skillObj, learnerType);
-    refreshState();
+  const handleAddSkillToLearn = async (skillObj) => {
+    await addLearn(skillObj, learnerType);
+    await refreshState();
   };
 
-  const handleRemoveSkillToLearn = (id) => {
-    removeLearn(id, learnerType);
-    refreshState();
+  const handleRemoveSkillToLearn = async (id) => {
+    await removeLearn(id, learnerType);
+    await refreshState();
   };
 
   const handleSendRequest = (targetUser, requestedSkill, offeredSkill, message) => {
     const req = sendExchangeRequest(targetUser, requestedSkill, offeredSkill, message);
-    refreshState();
+    refreshState().catch((error) => console.error('Unable to refresh exchanges', error));
     return req;
   };
 
   const handleAcceptRequest = (requestId) => {
-    acceptExchangeRequest(requestId);
-    refreshState();
+    acceptExchangeRequest(requestId).then(refreshState).catch((error) => console.error('Unable to accept exchange', error));
   };
 
   const handleDeclineRequest = (requestId) => {
-    rejectExchangeRequest(requestId);
-    refreshState();
+    rejectExchangeRequest(requestId).then(refreshState).catch((error) => console.error('Unable to reject exchange', error));
   };
 
   const handleToggleSave = (userId) => {

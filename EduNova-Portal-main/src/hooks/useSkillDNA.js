@@ -9,11 +9,13 @@ export const useSkillDNA = () => {
   const [gapAnalysis, setGapAnalysis] = useState(null);
   const [roadmap, setRoadmap] = useState(null);
 
-  const fetchSkillDNA = useCallback(() => {
+  const fetchSkillDNA = useCallback(async () => {
     setLoading(true);
-    const data = skillDNAService.getSkillDNA();
-    const gap = skillDNAService.generateSkillGapAnalysis(activeGoal);
-    const rmap = skillDNAService.generateLearningRoadmap(activeGoal);
+    const [data, gap, rmap] = await Promise.all([
+      skillDNAService.getSkillDNA(),
+      skillDNAService.generateSkillGapAnalysis(activeGoal),
+      skillDNAService.generateLearningRoadmap(activeGoal),
+    ]);
 
     setSkillDNA(data);
     setGapAnalysis(gap);
@@ -25,10 +27,14 @@ export const useSkillDNA = () => {
     fetchSkillDNA();
   }, [fetchSkillDNA]);
 
-  const updateGoal = (newGoal) => {
+  const updateGoal = async (newGoal) => {
     setActiveGoal(newGoal);
-    setGapAnalysis(skillDNAService.generateSkillGapAnalysis(newGoal));
-    setRoadmap(skillDNAService.generateLearningRoadmap(newGoal));
+    const [gap, rmap] = await Promise.all([
+      skillDNAService.generateSkillGapAnalysis(newGoal),
+      skillDNAService.generateLearningRoadmap(newGoal),
+    ]);
+    setGapAnalysis(gap);
+    setRoadmap(rmap);
   };
 
   const refreshAnalysis = () => {

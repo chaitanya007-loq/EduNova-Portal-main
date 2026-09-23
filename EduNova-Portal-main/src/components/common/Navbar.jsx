@@ -295,7 +295,7 @@ export const Navbar = ({ onOpenSearch }) => {
                     gap: '4px'
                   }}>
                     <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-color)', marginBottom: '4px' }}>
-                      <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.88rem' }}>{user?.name || 'Alex Mercer'}</strong>
+                      <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.88rem' }}>{user?.name || 'Learner'}</strong>
                       <span style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)' }}>{user?.email || 'alex@edunova.io'}</span>
                     </div>
 

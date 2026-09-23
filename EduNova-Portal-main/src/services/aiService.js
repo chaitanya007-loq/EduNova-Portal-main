@@ -5,9 +5,7 @@ import { aiService } from './ai/aiService';
 export const askSageAI = async (prompt, conversationHistory = [], context = {}) => {
   return aiService.askSage({
     prompt,
-    subjectId: context.subjectId,
-    topicId: context.topicId,
-    conversationHistory
+    conversationId: context.conversationId || null,
   });
 };
 
