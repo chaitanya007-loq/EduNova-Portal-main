@@ -1,0 +1,178 @@
+/* EduNova Glassmorphism Design System Tokens */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap');
+
+:root {
+  /* Cosmic Glass Sunset & Sapphire Canvas Palette */
+  --bg-primary: #070b22;
+  --bg-secondary: #0c1133;
+  --bg-tertiary: #101642;
+  --bg-elevated: #161e54;
+  --bg-glass-overlay: rgba(7, 11, 34, 0.75);
+  --bg-mesh-gradient:
+    radial-gradient(ellipse 70% 50% at 15% 15%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 50% 10%, rgba(56, 189, 248, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 50% at 85% 12%, rgba(168, 85, 247, 0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 88% 85%, rgba(30, 58, 138, 0.25) 0%, transparent 65%),
+    linear-gradient(135deg, #060919 0%, #0b112c 40%, #090d24 75%, #050816 100%);
+
+  /* Typography Colors */
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-accent: #22D3EE;
+
+  /* Glassmorphism Glowing Accents */
+  --accent-primary: #6366F1;
+  --accent-secondary: #8B5CF6;
+  --accent-cyan: #22D3EE;
+  --accent-blue: #3B82F6;
+  --accent-purple: #8B5CF6;
+  --accent-emerald: #10B981;
+  --accent-amber: #F59E0B;
+  --accent-rose: #F43F5E;
+
+  /* Neon Aura Glows */
+  --neon-glow-primary: 0 0 30px rgba(99, 102, 241, 0.35);
+  --neon-glow-cyan: 0 0 30px rgba(34, 211, 238, 0.35);
+  --neon-glow-purple: 0 0 30px rgba(139, 92, 246, 0.35);
+  --neon-glow-emerald: 0 0 30px rgba(16, 185, 129, 0.35);
+
+  /* Glass Surfaces & Frosted Borders */
+  --border-color: rgba(255, 255, 255, 0.18);
+  --border-glow: rgba(34, 211, 238, 0.5);
+  --border-strong: rgba(255, 255, 255, 0.28);
+  --glass-bg: linear-gradient(135deg, rgba(30, 45, 90, 0.65) 0%, rgba(18, 25, 60, 0.78) 60%, rgba(35, 25, 80, 0.70) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(35, 52, 105, 0.75) 0%, rgba(22, 30, 72, 0.85) 60%, rgba(42, 30, 95, 0.80) 100%);
+  --glass-bg-active: linear-gradient(135deg, rgba(40, 60, 120, 0.85) 0%, rgba(25, 35, 80, 0.90) 100%);
+  --glass-border: rgba(255, 255, 255, 0.20);
+  --glass-border-hover: rgba(56, 189, 248, 0.55);
+  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28);
+  --glass-shadow-hover: 0 25px 60px rgba(34, 211, 238, 0.3), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.35);
+  --glass-blur: blur(28px);
+  --glass-blur-heavy: blur(36px);
+
+  /* Typography Fonts */
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'Space Grotesk', monospace;
+
+  /* Layout Spacing */
+  --sidebar-width: 260px;
+  --navbar-height: 72px;
+  --mobile-nav-height: 64px;
+
+  /* Border Radii */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 26px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme='light'] {
+  /* EduNova Premium Liquid Glass Atmosphere Palette (Matching Reference Image 2) */
+  --bg-primary: #EEF5FF;
+  --bg-secondary: #F4F8FF;
+  --bg-tertiary: #EAF2FF;
+  --bg-elevated: #DDEBFD;
+  --bg-glass-overlay: rgba(238, 245, 255, 0.85);
+  --bg-mesh-gradient:
+    radial-gradient(circle at 85% 15%, rgba(168, 85, 247, 0.24) 0%, transparent 55%),
+    radial-gradient(circle at 15% 30%, rgba(56, 189, 248, 0.30) 0%, transparent 50%),
+    radial-gradient(circle at 65% 75%, rgba(192, 132, 252, 0.22) 0%, transparent 60%),
+    radial-gradient(circle at 25% 85%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
+    linear-gradient(135deg, #EEF5FF 0%, #E2EDFF 40%, #EAF0FF 75%, #F3EBFF 100%);
+
+  /* Typography Colors */
+  --text-primary: #18345F;
+  --text-secondary: #5D7192;
+  --text-muted: #8293AD;
+  --text-accent: #36C7F4;
+
+  /* Accent Colors */
+  --accent-primary: #4F8CFF;
+  --accent-secondary: #8B6CFF;
+  --accent-cyan: #36C7F4;
+  --accent-blue: #4F8CFF;
+  --accent-purple: #8B6CFF;
+  --accent-emerald: #20B486;
+  --accent-amber: #F5B942;
+  --accent-rose: #F05D78;
+
+  /* Neon & Light Aura Glows */
+  --neon-glow-primary: 0 8px 30px rgba(79, 140, 255, 0.25);
+  --neon-glow-cyan: 0 8px 30px rgba(54, 199, 244, 0.30);
+  --neon-glow-purple: 0 8px 30px rgba(139, 108, 255, 0.28);
+  --neon-glow-emerald: 0 8px 30px rgba(32, 180, 134, 0.25);
+
+  /* Translucent Frosted Glass Surfaces & Borders */
+  --border-color: rgba(255, 255, 255, 0.85);
+  --border-glow: rgba(54, 199, 244, 0.45);
+  --border-strong: rgba(255, 255, 255, 0.95);
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(240, 246, 255, 0.72) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 249, 255, 0.85) 100%);
+  --glass-bg-active: rgba(255, 255, 255, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.92);
+  --glass-border-hover: rgba(54, 199, 244, 0.60);
+  --glass-shadow: 0 14px 40px rgba(79, 110, 170, 0.10), inset 0 1.5px 2px 0 rgba(255, 255, 255, 1);
+  --glass-shadow-hover: 0 18px 50px rgba(54, 199, 244, 0.18), inset 0 1.5px 2px 0 rgba(255, 255, 255, 1);
+  --glass-blur: blur(24px);
+  --glass-blur-heavy: blur(32px);
+}
+
+/* Explicit Dark Theme & Forced Dark Pages Rule (Landing Page & Login/Auth Pages) */
+[data-theme='dark'],
+.edunova-landing-page,
+.edunova-auth-page,
+html[data-theme='light'] .edunova-landing-page,
+html[data-theme='light'] .edunova-auth-page {
+  --bg-primary: #070b22;
+  --bg-secondary: #0c1133;
+  --bg-tertiary: #101642;
+  --bg-elevated: #161e54;
+  --bg-glass-overlay: rgba(7, 11, 34, 0.75);
+  --bg-mesh-gradient:
+    radial-gradient(ellipse 70% 50% at 15% 15%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 45% at 50% 10%, rgba(56, 189, 248, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 65% 50% at 85% 12%, rgba(168, 85, 247, 0.20) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 88% 85%, rgba(30, 58, 138, 0.25) 0%, transparent 65%),
+    linear-gradient(135deg, #060919 0%, #0b112c 40%, #090d24 75%, #050816 100%);
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-accent: #22D3EE;
+
+  --accent-primary: #6366F1;
+  --accent-secondary: #8B5CF6;
+  --accent-cyan: #22D3EE;
+  --accent-blue: #3B82F6;
+  --accent-purple: #8B5CF6;
+  --accent-emerald: #10B981;
+  --accent-amber: #F59E0B;
+  --accent-rose: #F43F5E;
+
+  --neon-glow-primary: 0 0 30px rgba(99, 102, 241, 0.35);
+  --neon-glow-cyan: 0 0 30px rgba(34, 211, 238, 0.35);
+  --neon-glow-purple: 0 0 30px rgba(139, 92, 246, 0.35);
+  --neon-glow-emerald: 0 0 30px rgba(16, 185, 129, 0.35);
+
+  --border-color: rgba(255, 255, 255, 0.18);
+  --border-glow: rgba(34, 211, 238, 0.5);
+  --border-strong: rgba(255, 255, 255, 0.28);
+  --glass-bg: linear-gradient(135deg, rgba(30, 45, 90, 0.65) 0%, rgba(18, 25, 60, 0.78) 60%, rgba(35, 25, 80, 0.70) 100%);
+  --glass-bg-hover: linear-gradient(135deg, rgba(35, 52, 105, 0.75) 0%, rgba(22, 30, 72, 0.85) 60%, rgba(42, 30, 95, 0.80) 100%);
+  --glass-bg-active: linear-gradient(135deg, rgba(40, 60, 120, 0.85) 0%, rgba(25, 35, 80, 0.90) 100%);
+  --glass-border: rgba(255, 255, 255, 0.20);
+  --glass-border-hover: rgba(56, 189, 248, 0.55);
+  --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.28);
+  --glass-shadow-hover: 0 25px 60px rgba(34, 211, 238, 0.3), inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.35);
+  --glass-blur: blur(28px);
+  --glass-blur-heavy: blur(36px);
+}

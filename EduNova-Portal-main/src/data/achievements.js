@@ -1,0 +1,150 @@
+export const sampleAchievements = [
+  {
+    id: 'ach_1',
+    title: 'First Step Beyond',
+    description: 'Completed your first interactive lesson on EduNova.',
+    icon: '🚀',
+    category: 'Learning',
+    rarity: 'COMMON',
+    conditionType: 'LESSONS_COMPLETED',
+    target: 1,
+    progress: 1,
+    unlocked: true,
+    unlockedDate: 'Jan 12, 2026',
+    xpReward: 100
+  },
+  {
+    id: 'ach_2',
+    title: '7-Day Streak Master',
+    description: 'Maintained an uninterrupted daily learning streak for 7 consecutive days.',
+    icon: '🔥',
+    category: 'Consistency',
+    rarity: 'RARE',
+    conditionType: 'STREAK_DAYS',
+    target: 7,
+    progress: 7,
+    unlocked: true,
+    unlockedDate: 'Feb 02, 2026',
+    xpReward: 250
+  },
+  {
+    id: 'ach_3',
+    title: 'Quiz Champion',
+    description: 'Scored 100% on 3 interactive subject quizzes.',
+    icon: '🏆',
+    category: 'Quizzes',
+    rarity: 'EPIC',
+    conditionType: 'PERFECT_QUIZZES',
+    target: 3,
+    progress: 2,
+    unlocked: false,
+    xpReward: 300
+  },
+  {
+    id: 'ach_4',
+    title: 'XR Spatial Explorer',
+    description: 'Launched 5 browser-based AR/VR simulations in Immersive Lab.',
+    icon: '🥽',
+    category: 'XR / Immersive',
+    rarity: 'EPIC',
+    conditionType: 'XR_ACTIVITIES',
+    target: 5,
+    progress: 3,
+    unlocked: false,
+    xpReward: 500
+  },
+  {
+    id: 'ach_5',
+    title: 'Knowledge Mentor',
+    description: 'Completed your first peer skill barter exchange session.',
+    icon: '🤝',
+    category: 'Peer Learning',
+    rarity: 'RARE',
+    conditionType: 'PEER_SESSIONS',
+    target: 1,
+    progress: 0,
+    unlocked: false,
+    xpReward: 400
+  },
+  {
+    id: 'ach_6',
+    title: 'Constellation Builder',
+    description: 'Unlocked 5 skill nodes in your Knowledge Constellation graph.',
+    icon: '✨',
+    category: 'Skills',
+    rarity: 'RARE',
+    conditionType: 'SKILLS_MASTERED',
+    target: 5,
+    progress: 5,
+    unlocked: true,
+    unlockedDate: 'Mar 01, 2026',
+    xpReward: 350
+  },
+  {
+    id: 'ach_7',
+    title: '14-Day Consistency Master',
+    description: 'Maintained a 14-day consecutive active study streak.',
+    icon: '⚡',
+    category: 'Consistency',
+    rarity: 'EPIC',
+    conditionType: 'STREAK_DAYS',
+    target: 14,
+    progress: 12,
+    unlocked: false,
+    xpReward: 600
+  },
+  {
+    id: 'ach_8',
+    title: 'React Architect',
+    description: 'Completed React Component State & Custom Hooks lab modules.',
+    icon: '⚛️',
+    category: 'Subjects',
+    rarity: 'LEGENDARY',
+    conditionType: 'LESSONS_COMPLETED',
+    target: 10,
+    progress: 8,
+    unlocked: false,
+    xpReward: 750
+  },
+  {
+    id: 'ach_9',
+    title: 'DBMS Database Architect',
+    description: 'Mastered SQL queries & B-Tree indexing benchmarks.',
+    icon: '💾',
+    category: 'Subjects',
+    rarity: 'EPIC',
+    conditionType: 'QUIZZES_COMPLETED',
+    target: 5,
+    progress: 4,
+    unlocked: false,
+    xpReward: 450
+  },
+  {
+    id: 'ach_10',
+    title: '30-Day Legend',
+    description: 'Achieved a legendary 30-day streak in EduNova.',
+    icon: '👑',
+    category: 'Milestones',
+    rarity: 'LEGENDARY',
+    conditionType: 'STREAK_DAYS',
+    target: 30,
+    progress: 12,
+    unlocked: false,
+    xpReward: 1200
+  }
+];
+
+export const CATEGORIES = [
+  'All',
+  'Learning',
+  'Consistency',
+  'Quizzes',
+  'Subjects',
+  'Skills',
+  'XR / Immersive',
+  'Peer Learning',
+  'Community',
+  'Milestones'
+];
+
+export const RARITIES = ['All', 'COMMON', 'RARE', 'EPIC', 'LEGENDARY'];

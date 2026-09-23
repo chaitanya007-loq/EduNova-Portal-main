@@ -1,0 +1,9 @@
+{
+  "short_name": "EduNova",
+  "name": "EduNova — Learn Beyond Boundaries",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0b0f19",
+  "background_color": "#0b0f19"
+}

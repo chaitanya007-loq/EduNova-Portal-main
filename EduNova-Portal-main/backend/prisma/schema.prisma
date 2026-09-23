@@ -1,0 +1,608 @@
+// ============================================================================
+// EduNova — Prisma Schema
+// Database: PostgreSQL
+// Architecture: Route → Middleware → Controller → Service → Prisma Client → PG
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum Role {
+  ADMIN
+  INSTRUCTOR
+  STUDENT
+  PARENT
+}
+
+enum LearnerType {
+  SCHOOL
+  COLLEGE
+  SKILLS
+  EXAM
+}
+
+enum EducationType {
+  SCHOOL
+  COLLEGE
+  SKILLS
+  EXAM
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum MissionPeriod {
+  DAILY
+  WEEKLY
+}
+
+enum ConversationType {
+  DIRECT
+  COMMUNITY
+  SKILL_EXCHANGE
+}
+
+enum MessageType {
+  TEXT
+  CODE
+  FILE
+}
+
+enum SkillExchangeStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  COMPLETED
+}
+
+// ============================================================================
+// 1. USER — Central identity for all 4 roles
+// ============================================================================
+
+model User {
+  id              String      @id @default(cuid())
+  name            String
+  email           String?     @unique
+  phone           String?     @unique
+  passwordHash    String?
+  role            Role        @default(STUDENT)
+  learnerType     LearnerType @default(SCHOOL)
+  studentUsername  String?     // Parent uses this to link to their child
+  avatar          String?
+  googleId        String?     @unique
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  learnerProfile          LearnerProfile?
+  createdSubjects         Subject[]              @relation("SubjectCreator")
+  instructedCourses       Course[]               @relation("CourseInstructor")
+  subjectProgress         StudentSubjectProgress[]
+  courseProgress          UserCourseProgress[]
+  userMissions            UserMission[]
+  xpTransactions          XpTransaction[]
+  adminAuditLogs          AdminAuditLog[]        @relation("AuditAdmin")
+  conversationMembers     ConversationMember[]
+  chatMessages            ChatMessage[]
+  sentSkillExchanges      SkillExchange[]        @relation("SentSkillExchanges")
+  receivedSkillExchanges  SkillExchange[]        @relation("ReceivedSkillExchanges")
+  quizAttempts            QuizAttempt[]
+  studySessions           StudySession[]
+  aiConversations         AiConversation[]
+  notes                   Note[]
+
+  @@index([role])
+  @@index([learnerType])
+  @@index([studentUsername])
+  @@map("users")
+}
+
+// ============================================================================
+// 2. OTP VERIFICATION — Phone-based authentication
+// ============================================================================
+
+model OtpVerification {
+  id          String   @id @default(cuid())
+  phone       String
+  otpHash     String
+  attempts    Int      @default(0)
+  expiresAt   DateTime
+  consumed    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([phone])
+  @@index([phone, consumed])
+  @@map("otp_verifications")
+}
+
+// ============================================================================
+// 3. LEARNER PROFILE — Extended student data (1:1 with User)
+// ============================================================================
+
+model LearnerProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  board       String?                         // e.g. "CBSE", "ICSE", "State"
+  degree      String?                         // e.g. "B.Tech", "BCA"
+  goals       String[] @default([])              // JSON-encoded goal objects or plain goal labels
+  weakTopics  String[] @default([])              // AI-identified weak areas
+  xp          Int      @default(0)
+  level       Int      @default(1)
+  streakDays  Int      @default(0)
+  onboardingCompleted Boolean @default(false)
+  academicDetails Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("learner_profiles")
+}
+
+// ============================================================================
+// 4. SUBJECT & TOPIC — Curriculum structure
+// ============================================================================
+
+model Subject {
+  id            String        @id @default(cuid())
+  name          String
+  category      String                         // e.g. "Science", "Humanities"
+  educationType EducationType @default(SCHOOL)
+  class         String?                        // e.g. "10", "12", null for college
+  board         String?                        // e.g. "CBSE", null for skill-based
+  degree        String?                        // e.g. "B.Tech", "BCA"
+  branch        String?                        // e.g. "Computer Science"
+  semester      String?                        // e.g. "1", "3", "5"
+  exam          String?                        // e.g. "JEE Mains", "NEET", "CMAT"
+  createdById   String
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  createdBy     User          @relation("SubjectCreator", fields: [createdById], references: [id])
+  topics        Topic[]
+  progress      StudentSubjectProgress[]
+  quizzes       Quiz[]
+  studySessions StudySession[]
+  notes         Note[]
+
+  @@index([educationType])
+  @@index([board, class])
+  @@map("subjects")
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  subjectId   String
+  title       String
+  order       Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  subject     Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  quizzes     Quiz[]
+  notes       Note[]
+
+  @@index([subjectId, order])
+  @@map("topics")
+}
+
+// ============================================================================
+// 5. STUDENT SUBJECT PROGRESS — Per-student, per-subject tracking
+// ============================================================================
+
+model StudentSubjectProgress {
+  id               String  @id @default(cuid())
+  userId           String
+  subjectId        String
+  progress         Float   @default(0)         // 0.0 – 100.0
+  targetScore      Int     @default(80)        // Student's target percentage
+  syllabusCoverage Float   @default(0)         // 0.0 – 100.0
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user             User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject          Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, subjectId])
+  @@index([userId])
+  @@map("student_subject_progress")
+}
+
+// ============================================================================
+// 6. COURSE & COURSE MODULE — Instructor-led courses
+// ============================================================================
+
+model Course {
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  category      String                         // e.g. "Web Development", "Physics"
+  instructorId  String
+  difficulty    Difficulty @default(BEGINNER)
+  rating        Float      @default(0)
+  totalRatings  Int        @default(0)
+  thumbnail     String?
+  isPublished   Boolean    @default(false)
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  instructor    User           @relation("CourseInstructor", fields: [instructorId], references: [id])
+  modules       CourseModule[]
+  enrollments   UserCourseProgress[]
+
+  @@index([instructorId])
+  @@index([isPublished, category])
+  @@map("courses")
+}
+
+model CourseModule {
+  id        String @id @default(cuid())
+  courseId   String
+  title      String
+  duration   Int    @default(0)                // Duration in minutes
+  order      Int    @default(0)
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  course     Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId, order])
+  @@map("course_modules")
+}
+
+// ============================================================================
+// 7. USER COURSE PROGRESS — Enrollment & completion tracking
+// ============================================================================
+
+model UserCourseProgress {
+  id                 String   @id @default(cuid())
+  userId             String
+  courseId            String
+  completedModuleIds String[] @default([])      // Array of completed CourseModule IDs
+  progress           Float    @default(0)      // 0.0 – 100.0
+
+  enrolledAt         DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user               User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course             Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@map("user_course_progress")
+}
+
+// ============================================================================
+// 8. GAMIFICATION — Missions, XP, Rewards
+// ============================================================================
+
+model Mission {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  rewardXp    Int           @default(0)
+  category    String                           // e.g. "learning", "social", "streak"
+  period      MissionPeriod @default(DAILY)
+  isActive    Boolean       @default(true)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  userMissions UserMission[]
+
+  @@index([period, isActive])
+  @@map("missions")
+}
+
+model UserMission {
+  id          String   @id @default(cuid())
+  userId      String
+  missionId   String
+  completed   Boolean  @default(false)
+  progress    Int      @default(0)             // 0 – 100 or step count
+
+  assignedAt  DateTime @default(now())
+  completedAt DateTime?
+  updatedAt   DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  mission     Mission  @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, missionId])
+  @@index([userId, completed])
+  @@map("user_missions")
+}
+
+model XpTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int                              // Can be negative for penalties
+  sourceTitle String                           // e.g. "Completed Physics Quiz", "Daily Login"
+  createdAt   DateTime @default(now())
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("xp_transactions")
+}
+
+// ============================================================================
+// 9. ADMIN AUDIT LOG — Track admin actions for accountability
+// ============================================================================
+
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  adminId     String
+  action      String                           // e.g. "DELETE_USER", "PUBLISH_COURSE"
+  targetType  String                           // e.g. "User", "Course", "Subject"
+  targetId    String                           // ID of the affected record
+  details     Json?                            // Additional context
+  createdAt   DateTime @default(now())
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  admin       User     @relation("AuditAdmin", fields: [adminId], references: [id])
+
+  @@index([adminId])
+  @@index([targetType, targetId])
+  @@index([createdAt])
+  @@map("admin_audit_logs")
+}
+
+// ============================================================================
+// 10. CONVERSATION & REALTIME CHAT
+// ============================================================================
+
+model Conversation {
+  id            String           @id @default(cuid())
+  type          ConversationType @default(DIRECT)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  members       ConversationMember[]
+  messages      ChatMessage[]
+  skillExchange SkillExchange?
+
+  @@map("conversations")
+}
+
+model ConversationMember {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  role           String       @default("MEMBER") // "OWNER", "ADMIN", "MEMBER"
+  joinedAt       DateTime     @default(now())
+  lastReadAt     DateTime     @default(now())
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId])
+  @@map("conversation_members")
+}
+
+model ChatMessage {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  messageType    MessageType  @default(TEXT)
+  fileUrl        String?
+  createdAt      DateTime     @default(now())
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@map("chat_messages")
+}
+
+// ============================================================================
+// 11. PEER SKILL EXCHANGE
+// ============================================================================
+
+model SkillExchange {
+  id             String              @id @default(cuid())
+  senderId       String
+  receiverId     String
+  skillOffered   String
+  skillWanted    String
+  status         SkillExchangeStatus @default(PENDING)
+  conversationId String?             @unique
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  sender         User          @relation("SentSkillExchanges", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       User          @relation("ReceivedSkillExchanges", fields: [receiverId], references: [id], onDelete: Cascade)
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
+  @@map("skill_exchanges")
+}
+
+// ============================================================================
+// 12. QUIZ ENGINE & EVALUATION
+// ============================================================================
+
+model Quiz {
+  id             String         @id @default(cuid())
+  subjectId      String
+  topicId        String?
+  title          String
+  difficulty     Difficulty     @default(BEGINNER)
+  totalQuestions Int            @default(5)
+
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  subject        Subject        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topic          Topic?         @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  questions      QuizQuestion[]
+  attempts       QuizAttempt[]
+
+  @@index([subjectId])
+  @@index([topicId])
+  @@map("quizzes")
+}
+
+model QuizQuestion {
+  id                 String   @id @default(cuid())
+  quizId             String
+  questionText       String
+  options            Json     @default("[]")
+  correctOptionIndex Int
+  explanation        String?
+  fingerprint        String?
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  quiz               Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+  @@map("quiz_questions")
+}
+
+model QuizAttempt {
+  id             String   @id @default(cuid())
+  quizId         String
+  userId         String
+  score          Int
+  totalQuestions Int
+  accuracy       Float                    // 0.0 - 100.0 percentage
+  timeSpentSec   Int      @default(0)
+
+  createdAt      DateTime @default(now())
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  quiz           Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([quizId])
+  @@map("quiz_attempts")
+}
+
+// ============================================================================
+// 13. STUDY SESSIONS & PERFORMANCE TRACKING
+// ============================================================================
+
+model StudySession {
+  id              String   @id @default(cuid())
+  userId          String
+  subjectId       String
+  durationMinutes Int
+  plannedDate     DateTime
+  completed       Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject         Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([subjectId])
+  @@index([plannedDate])
+  @@map("study_sessions")
+}
+
+// ============================================================================
+// 14. SAGE AI CONVERSATIONS & Q&A HISTORY
+// ============================================================================
+
+model AiConversation {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String?  @default("Sage Tutoring Session")
+  prompt    String   // The student query or question
+  response  String   // The Sage AI response
+  metadata  Json?    // Context constraints, token usage, topic, weak topics targeted
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("ai_conversations")
+}
+
+// ============================================================================
+// 15. SMART NOTES & KNOWLEDGE SYSTEM
+// ============================================================================
+
+model Note {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  content     String
+  subjectId   String?
+  topicId     String?
+  courseId    String?
+  type        String   @default("GENERAL")
+  isPinned    Boolean  @default(false)
+  isFavorite  Boolean  @default(false)
+  isArchived  Boolean  @default(false)
+  source      String   @default("USER")
+  tags        String[] @default([])
+  attachments String[] @default([])
+  readTimeMin Int      @default(1)
+  wordCount   Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // ── Relations ─────────────────────────────────────────────────────────────
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject     Subject? @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  topic       Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, isPinned])
+  @@index([userId, isFavorite])
+  @@index([userId, type])
+  @@index([subjectId])
+  @@index([topicId])
+  @@map("notes")
+}
+
+

@@ -1,0 +1,666 @@
+/* Glassmorphism & Cyber Card Effects System */
+
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--radius-lg);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), border-color var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  display: none;
+}
+
+.glass-card-hover:hover {
+  transform: translateY(-4px);
+  border-color: var(--glass-border-hover);
+  box-shadow: var(--glass-shadow-hover);
+}
+
+.glass-panel {
+  background: var(--bg-secondary);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Light Theme Card Elements & Widgets Override (Excluded for Landing Page & Auth/Login pages) */
+:not(.edunova-landing-page):not(.edunova-landing-page *):not(.edunova-auth-page):not(.edunova-auth-page *)[data-theme='light'] .glass-panel {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 246, 255, 0.78) 100%);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-color: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 14px 40px rgba(79, 110, 170, 0.10), inset 0 1.5px 2px rgba(255, 255, 255, 1);
+}
+
+/* Frosted Glass Hero Banner */
+.glass-hero-banner {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, rgba(13, 19, 38, 0.85) 0%, rgba(24, 34, 68, 0.75) 100%);
+  border: 1px solid rgba(34, 211, 238, 0.3);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+:not(.edunova-landing-page):not(.edunova-landing-page *):not(.edunova-auth-page):not(.edunova-auth-page *)[data-theme='light'] .glass-hero-banner {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(235, 243, 255, 0.80) 50%, rgba(240, 235, 255, 0.84) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 20px 50px rgba(64, 100, 160, 0.10), inset 0 1.5px 2px rgba(255, 255, 255, 1) !important;
+}
+
+:not(.edunova-landing-page):not(.edunova-landing-page *):not(.edunova-auth-page):not(.edunova-auth-page *)[data-theme='light'] .glass-hero-banner h1,
+:not(.edunova-landing-page):not(.edunova-landing-page *):not(.edunova-auth-page):not(.edunova-auth-page *)[data-theme='light'] .glass-hero-banner h2,
+:not(.edunova-landing-page):not(.edunova-landing-page *):not(.edunova-auth-page):not(.edunova-auth-page *)[data-theme='light'] .glass-hero-banner h3 {
+  color: #18345F !important;
+}
+
+:not(.edunova-landing-page):not(.edunova-landing-page *):not(.edunova-auth-page):not(.edunova-auth-page *)[data-theme='light'] .glass-hero-banner p,
+:not(.edunova-landing-page):not(.edunova-landing-page *):not(.edunova-auth-page):not(.edunova-auth-page *)[data-theme='light'] .glass-hero-banner span {
+  color: #5D7192 !important;
+}
+
+/* Light Theme Card Elements & Widgets Override */
+html[data-theme='light'] body:not(:has(.edunova-landing-page)):not(:has(.edunova-auth-page)) .glass-card,
+html[data-theme='light'] main .glass-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(240, 246, 255, 0.75) 100%) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 14px 40px rgba(79, 110, 170, 0.10), inset 0 1.5px 2px rgba(255, 255, 255, 1) !important;
+}
+
+/* Glass Form Inputs */
+.glass-input-field,
+.glass-select-field,
+.glass-textarea-field {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: var(--radius-md);
+  background: rgba(7, 11, 24, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  color: var(--text-primary) !important;
+  font-size: 0.92rem;
+  outline: none;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all var(--transition-normal);
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.4);
+}
+
+.glass-input-field:focus,
+.glass-select-field:focus,
+.glass-textarea-field:focus {
+  border-color: var(--accent-cyan) !important;
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.4), 0 0 20px rgba(34, 211, 238, 0.35) !important;
+}
+
+[data-theme='light'] .glass-input-field,
+[data-theme='light'] .glass-select-field,
+[data-theme='light'] .glass-textarea-field {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  color: var(--text-primary) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* Glowing Border Indicator */
+.glow-border {
+  position: relative;
+}
+
+.glow-border::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #22d3ee);
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
+.glow-border:hover::after {
+  opacity: 1;
+}
+
+/* Cyber Glass Badges */
+.cyber-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.cyber-badge-cyan {
+  background: rgba(34, 211, 238, 0.15);
+  color: #22d3ee;
+  border: 1px solid rgba(34, 211, 238, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.cyber-badge-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.cyber-badge-amber {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.cyber-badge-purple {
+  background: rgba(168, 85, 247, 0.15);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+[data-theme='light'] .cyber-badge {
+  background: rgba(99, 102, 241, 0.12);
+  color: #4f46e5;
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+[data-theme='light'] .cyber-badge-cyan {
+  background: rgba(6, 182, 212, 0.12);
+  color: #0284c7;
+  border-color: rgba(6, 182, 212, 0.25);
+}
+
+[data-theme='light'] .cyber-badge-emerald {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+[data-theme='light'] .cyber-badge-amber {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+[data-theme='light'] .cyber-badge-purple {
+  background: rgba(168, 85, 247, 0.12);
+  color: #7e22ce;
+  border-color: rgba(168, 85, 247, 0.25);
+}
+
+/* ------------------------------------------------------------- */
+/* Liquid Glass Navbar & Header Controls Styling                 */
+/* ------------------------------------------------------------- */
+@keyframes navbarBorderGlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.liquid-glass-navbar {
+  height: var(--navbar-height, 72px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(13, 19, 38, 0.72) 50%, rgba(7, 11, 24, 0.85) 100%) !important;
+  backdrop-filter: blur(24px) saturate(190%) contrast(105%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%) contrast(105%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.liquid-glass-navbar.scrolled {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, rgba(13, 19, 38, 0.88) 50%, rgba(7, 11, 24, 0.95) 100%) !important;
+  backdrop-filter: blur(30px) saturate(200%) contrast(110%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%) contrast(110%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+  box-shadow: 0 16px 45px 0 rgba(0, 0, 0, 0.75), inset 0 1.5px 1.5px 0 rgba(255, 255, 255, 0.25);
+}
+
+.liquid-glass-navbar::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #22d3ee, #38bdf8, #6366f1, #8b5cf6, #ec4899, #38bdf8, #22d3ee);
+  background-size: 200% 100%;
+  animation: navbarBorderGlow 4s linear infinite;
+  pointer-events: none;
+  opacity: 0.95;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.7);
+}
+
+.liquid-glass-search-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+  color: #cbd5e1;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.25), 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.liquid-glass-search-btn:hover {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.22) 0%, rgba(99, 102, 241, 0.18) 100%);
+  border-color: rgba(34, 211, 238, 0.65);
+  color: #ffffff;
+  box-shadow: inset 0 1.5px 3px rgba(255, 255, 255, 0.35), 0 0 30px rgba(34, 211, 238, 0.45);
+  transform: translateY(-1px);
+}
+
+.liquid-glass-icon-btn {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.22), 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.liquid-glass-icon-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(34, 211, 238, 0.2) 100%);
+  border-color: rgba(34, 211, 238, 0.65);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1.5px 3px rgba(255, 255, 255, 0.35), 0 0 25px rgba(34, 211, 238, 0.45);
+}
+
+.liquid-glass-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+  border: 2px solid #070B18;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 14px rgba(244, 63, 94, 0.9);
+}
+
+.liquid-glass-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 4px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.18) 0%, rgba(99, 102, 241, 0.15) 100%);
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1.5px 2px rgba(255, 255, 255, 0.22), 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.liquid-glass-avatar-btn:hover {
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.3) 0%, rgba(99, 102, 241, 0.25) 100%);
+  border-color: rgba(56, 189, 248, 0.8);
+  transform: translateY(-1px);
+  box-shadow: inset 0 1.5px 3px rgba(255, 255, 255, 0.35), 0 0 25px rgba(34, 211, 238, 0.5);
+}
+
+/* Light Theme Overrides for Liquid Glass Elements & Reference Image Language */
+[data-theme='light'] .liquid-glass-navbar {
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(64, 100, 160, 0.08);
+}
+
+[data-theme='light'] .liquid-glass-navbar.scrolled {
+  background: rgba(255, 255, 255, 0.88) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.95);
+  box-shadow: 0 12px 40px rgba(64, 100, 160, 0.12);
+}
+
+[data-theme='light'] .liquid-glass-search-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.95);
+  color: var(--text-secondary);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), 0 6px 20px rgba(64, 100, 160, 0.06);
+}
+
+[data-theme='light'] .liquid-glass-search-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--accent-cyan);
+  color: var(--text-primary);
+}
+
+[data-theme='light'] .liquid-glass-icon-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
+  box-shadow: 0 6px 20px rgba(64, 100, 160, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+[data-theme='light'] .liquid-glass-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--accent-cyan);
+  box-shadow: 0 8px 25px rgba(54, 199, 244, 0.25);
+}
+
+[data-theme='light'] .liquid-glass-avatar-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(54, 199, 244, 0.5);
+}
+
+[data-theme='light'] .liquid-glass-badge {
+  border-color: #ffffff;
+}
+
+/* Light Mode Glass Sidebar Overrides */
+[data-theme='light'] aside.desktop-only {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(240, 246, 255, 0.84) 100%) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 18px 50px rgba(64, 100, 160, 0.10), inset 0 1.5px 2px rgba(255, 255, 255, 1) !important;
+}
+
+[data-theme='light'] aside.desktop-only h2 {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] aside.desktop-only nav a:not(.active) {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] aside.desktop-only nav a:not(.active) span {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] aside.desktop-only nav a:not(.active) svg {
+  color: #0284c7 !important;
+}
+
+[data-theme='light'] aside.desktop-only nav a:not(.active):hover {
+  color: #0284c7 !important;
+  background: rgba(240, 246, 255, 0.95) !important;
+  border-color: rgba(186, 230, 253, 0.8) !important;
+}
+
+[data-theme='light'] aside.desktop-only nav a.active {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #7c3aed 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.9) !important;
+  box-shadow: 0 8px 25px rgba(2, 132, 199, 0.4), inset 0 1px 1.5px rgba(255, 255, 255, 0.4) !important;
+}
+
+[data-theme='light'] aside.desktop-only nav a.active span {
+  color: #ffffff !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme='light'] aside.desktop-only nav a.active svg {
+  color: #ffffff !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Responsive Grid System */
+.edunova-responsive-dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 18px;
+}
+
+@media (max-width: 1024px) {
+  .edunova-responsive-dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ------------------------------------------------------------- */
+/* EduNova Ultra-Premium Light Glass — Comprehensive Overrides    */
+/* ------------------------------------------------------------- */
+
+/* Exclude landing page and auth page from global light mode body override */
+[data-theme='light'] body:not(:has(.edunova-landing-page)):not(:has(.edunova-auth-page)) {
+  background: linear-gradient(135deg, #eef6ff 0%, #f5f0ff 50%, #eef8ff 100%) !important;
+  color: #0f172a !important;
+}
+
+[data-theme='light'] body {
+  background: linear-gradient(135deg, #eef6ff 0%, #f5f0ff 50%, #eef8ff 100%);
+}
+
+/* Light Mode overrides — scoped to exclude landing page and auth pages */
+[data-theme='light'] :not(.edunova-landing-page):not(.edunova-auth-page):not(.edunova-landing-page *):not(.edunova-auth-page *) > .glass-card,
+[data-theme='light'] :not(.edunova-landing-page):not(.edunova-auth-page):not(.edunova-landing-page *):not(.edunova-auth-page *) > .glass-panel,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(15, 23, 42"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(30, 45, 90"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(20, 26, 58"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(18, 25, 60"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(15, 22, 50"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(12, 17, 40"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 246, 255, 0.85) 100%) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 16px 45px rgba(64, 100, 160, 0.10), inset 0 1.5px 2px rgba(255, 255, 255, 1) !important;
+}
+
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(255, 255, 255, 0.04)"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(255, 255, 255, 0.05)"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(255, 255, 255, 0.06)"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="background: rgba(255, 255, 255, 0.08)"] {
+  background: rgba(240, 246, 255, 0.85) !important;
+  border: 1px solid rgba(200, 218, 240, 0.8) !important;
+  box-shadow: 0 4px 15px rgba(64, 100, 160, 0.05) !important;
+}
+
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) h1,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) h2,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) h3,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) h4,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) h5,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) h6,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) strong {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) p,
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) span:not([class*="badge"]):not([style*="color: #ffffff"]):not([style*="color: #fff"]) {
+  color: #334155;
+}
+
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) input[type="text"],
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) input[placeholder] {
+  color: #0f172a !important;
+}
+
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) input::placeholder {
+  color: #64748b !important;
+}
+
+/* Light mode search bar pill override */
+[data-theme='light'] main:not(.edunova-landing-page):not(.edunova-auth-page) div[style*="border-radius: 9999px"][style*="background: linear-gradient"] {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.98) !important;
+  box-shadow: 0 8px 25px rgba(64, 100, 160, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* ------------------------------------------------------------- */
+/* MANDATORY LANDING & AUTH PAGE DARK THEME LOCK                 */
+/* Ensures Landing & Auth Pages are 100% immune to Light Mode    */
+/* ------------------------------------------------------------- */
+.edunova-landing-page,
+[data-theme='light'] .edunova-landing-page,
+.edunova-dark-theme-forced,
+[data-theme='light'] .edunova-dark-theme-forced,
+.edunova-auth-page,
+[data-theme='light'] .edunova-auth-page,
+html:has(.edunova-landing-page),
+body:has(.edunova-landing-page),
+html:has(.edunova-auth-page),
+body:has(.edunova-auth-page) {
+  background-color: #070b22 !important;
+  background-image: radial-gradient(ellipse at 50% 0%, #151c3a 0%, #080c1e 60%, #050714 100%) !important;
+  background-attachment: fixed !important;
+  color: #ffffff !important;
+}
+
+.edunova-auth-card,
+[data-theme='light'] .edunova-auth-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 50%, rgba(15, 23, 42, 0.55) 100%) !important;
+  backdrop-filter: blur(40px) saturate(210%) contrast(105%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(210%) contrast(105%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 35px 90px rgba(0, 0, 0, 0.65), 0 0 50px rgba(56, 189, 248, 0.22), inset 0 1.5px 2.5px 0 rgba(255, 255, 255, 0.45) !important;
+  border-radius: 28px !important;
+  position: relative;
+  overflow: hidden;
+  color: #ffffff !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.edunova-auth-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #38bdf8 20%, #a855f7 50%, #34d399 80%, transparent);
+  pointer-events: none;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 12px #38bdf8);
+}
+
+.edunova-landing-page h1,
+.edunova-landing-page h2,
+.edunova-landing-page h3,
+.edunova-landing-page h4,
+.edunova-landing-page h5,
+.edunova-landing-page h6,
+.edunova-landing-page strong,
+.edunova-auth-page h1,
+.edunova-auth-page h2,
+.edunova-auth-page h3,
+.edunova-auth-page h4,
+.edunova-auth-page h5,
+.edunova-auth-page h6,
+.edunova-auth-page strong,
+[data-theme='light'] .edunova-landing-page h1,
+[data-theme='light'] .edunova-landing-page h2,
+[data-theme='light'] .edunova-landing-page h3,
+[data-theme='light'] .edunova-landing-page h4,
+[data-theme='light'] .edunova-landing-page h5,
+[data-theme='light'] .edunova-landing-page h6,
+[data-theme='light'] .edunova-landing-page strong,
+[data-theme='light'] .edunova-auth-page h1,
+[data-theme='light'] .edunova-auth-page h2,
+[data-theme='light'] .edunova-auth-page h3,
+[data-theme='light'] .edunova-auth-page h4,
+[data-theme='light'] .edunova-auth-page h5,
+[data-theme='light'] .edunova-auth-page h6,
+[data-theme='light'] .edunova-auth-page strong {
+  color: #ffffff !important;
+}
+
+.edunova-landing-page p,
+[data-theme='light'] .edunova-landing-page p,
+.edunova-auth-page p,
+[data-theme='light'] .edunova-auth-page p {
+  color: #cbd5e1 !important;
+}
+
+.edunova-auth-page label,
+[data-theme='light'] .edunova-auth-page label {
+  color: #94a3b8 !important;
+}
+
+.edunova-auth-page input,
+[data-theme='light'] .edunova-auth-page input {
+  background: rgba(6, 10, 26, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  border-radius: 12px !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.5) !important;
+  transition: all 0.25s ease !important;
+}
+
+.edunova-auth-page input:focus,
+[data-theme='light'] .edunova-auth-page input:focus {
+  border-color: #38bdf8 !important;
+  box-shadow: inset 0 1.5px 3px rgba(0, 0, 0, 0.5), 0 0 22px rgba(56, 189, 248, 0.4) !important;
+  outline: none !important;
+}
+
+.edunova-auth-page input::placeholder,
+[data-theme='light'] .edunova-auth-page input::placeholder {
+  color: #64748b !important;
+}
+
+.edunova-landing-page header,
+[data-theme='light'] .edunova-landing-page header {
+  background: transparent !important;
+}
+
+.edunova-landing-page header > div,
+[data-theme='light'] .edunova-landing-page header > div {
+  background: rgba(15, 23, 42, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45), inset 0 1px 1.5px rgba(255, 255, 255, 0.25) !important;
+}
+
+.edunova-landing-page button,
+[data-theme='light'] .edunova-landing-page button {
+  color: #ffffff;
+}
