@@ -86,49 +86,6 @@ export const AuthProvider = ({ children }) => {
   }, [setUser]);
 
   /**
-   * 2. Phone OTP Authentication
-   */
-  const sendPhoneOtp = useCallback(async (phone) => {
-    try {
-      setAuthError(null);
-      const res = await authApi.sendOtp(phone);
-      return res.data;
-    } catch (err) {
-      setAuthError(err.message || 'Failed to send OTP');
-      throw err;
-    }
-  }, []);
-
-  const verifyPhoneOtp = useCallback(async (phoneOrPayload, otp) => {
-    try {
-      setLoading(true);
-      setAuthError(null);
-
-      const payload =
-        typeof phoneOrPayload === 'object'
-          ? phoneOrPayload
-          : { phone: phoneOrPayload, otp };
-
-      const res = await authApi.verifyOtp(payload);
-      if (res?.data?.token) {
-        localStorage.setItem('edunova_token', res.data.token);
-      }
-      if (res?.data?.refreshToken) {
-        localStorage.setItem('edunova_refresh_token', res.data.refreshToken);
-      }
-      if (res?.data?.user) {
-        setUser(res.data.user);
-      }
-      return res.data;
-    } catch (err) {
-      setAuthError(err.message || 'OTP verification failed');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [setUser]);
-
-  /**
    * 3. Google OAuth Login
    */
   const loginWithGoogle = useCallback(async (idToken, role = 'STUDENT', learnerType = 'SCHOOL') => {
@@ -293,8 +250,6 @@ export const AuthProvider = ({ children }) => {
     hydrateSession,
     // Standard Deliverable Methods
     loginWithPassword,
-    sendPhoneOtp,
-    verifyPhoneOtp,
     loginWithGoogle,
     register,
     registerParent,
@@ -304,8 +259,6 @@ export const AuthProvider = ({ children }) => {
     // Backward-compatibility Aliases
     login: loginWithPassword,
     loginGoogle: loginWithGoogle,
-    requestOtp: sendPhoneOtp,
-    verifyOtp: verifyPhoneOtp,
     loginParent,
   }), [
     user,
@@ -313,8 +266,6 @@ export const AuthProvider = ({ children }) => {
     authError,
     hydrateSession,
     loginWithPassword,
-    sendPhoneOtp,
-    verifyPhoneOtp,
     loginWithGoogle,
     register,
     registerParent,
@@ -332,4 +283,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-

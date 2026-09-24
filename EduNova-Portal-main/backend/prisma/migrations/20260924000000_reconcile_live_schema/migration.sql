@@ -1,6 +1,8 @@
 -- Reconcile additive objects observed in the existing PostgreSQL database.
 -- This migration is intentionally non-destructive: it does not drop tables or rows.
 
+ALTER TABLE "learner_profiles" ADD COLUMN IF NOT EXISTS "onboardingcompleted" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "learner_profiles" ADD COLUMN IF NOT EXISTS "academicdetails" JSONB;
 ALTER TABLE "subjects" ADD COLUMN IF NOT EXISTS "degree" TEXT;
 ALTER TABLE "subjects" ADD COLUMN IF NOT EXISTS "branch" TEXT;
 ALTER TABLE "subjects" ADD COLUMN IF NOT EXISTS "semester" TEXT;

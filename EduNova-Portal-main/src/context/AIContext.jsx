@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { askSageAI } from '../services/aiService';
 import { aiService } from '../services/ai/aiService';
 import { getChatHistory, saveChatMessage, clearChatHistory } from '../services/chatService';
+import { useAuth } from './AuthContext';
 
 const AIContext = createContext();
 
@@ -11,8 +12,13 @@ export const AIProvider = ({ children }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [activeContext, setActiveContext] = useState({});
   const [conversationId, setConversationId] = useState(null);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
+    if (authLoading || !user) {
+      return undefined;
+    }
+
     const loadHistory = async () => {
       try {
         const response = await aiService.getHistory();
@@ -26,7 +32,8 @@ export const AIProvider = ({ children }) => {
       }
     };
     loadHistory();
-  }, []);
+    return undefined;
+  }, [authLoading, user]);
 
   const toggleAIChat = useCallback(() => setIsOpen((prev) => !prev), []);
   const openAIChat = useCallback(() => setIsOpen(true), []);
@@ -127,4 +134,3 @@ export const AIProvider = ({ children }) => {
 };
 
 export const useAI = () => useContext(AIContext);
-

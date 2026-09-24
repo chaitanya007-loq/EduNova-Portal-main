@@ -19,21 +19,27 @@ import {
   ChevronRight,
   ChevronLeft,
   CheckSquare,
-  Gamepad2
+  Gamepad2,
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
 export const Sidebar = () => {
-  const { isParent } = useAuth();
+  const { isParent, user } = useAuth();
   const { theme } = useTheme() || {};
   const isLight = theme === 'light';
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const isParentMode = isParent || location.pathname.startsWith('/parent');
+  const isAdmin = user?.role === 'ADMIN';
 
-  const navItems = isParentMode
+  const navItems = isAdmin
+    ? [
+        { label: 'Admin Workspace', path: '/admin', icon: ShieldCheck }
+      ]
+    : isParentMode
     ? [
         { label: 'Parent Dashboard', path: '/parent/dashboard', icon: Home },
         { label: 'Child Performance', path: '/analytics', icon: TrendingUp },

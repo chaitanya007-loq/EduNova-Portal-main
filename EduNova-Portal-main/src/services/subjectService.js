@@ -131,6 +131,20 @@ class SubjectService {
     return [...this.deduplicateSubjects(subjects)].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   }
 
+  async getStudentSubjects() {
+    const response = await subjectApi.getEnrolledSubjects();
+    const enrollments = Array.isArray(response?.data) ? response.data : [];
+    return enrollments
+      .filter((enrollment) => enrollment.subject)
+      .map((enrollment) => ({
+        ...enrollment.subject,
+        progress: enrollment.progress ?? 0,
+        syllabusCoverage: enrollment.syllabusCoverage ?? 0,
+        targetScore: enrollment.targetScore ?? 90,
+        weakTopics: enrollment.weakTopics ?? [],
+      }));
+  }
+
   // Reorder subjects (Move Up / Move Down)
   reorderSubjects(subjectId, direction) {
     const list = [...this.studentSubjects];

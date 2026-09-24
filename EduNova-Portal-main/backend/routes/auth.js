@@ -5,7 +5,7 @@ const { validate } = require('../middleware/validate');
 const { requireAuth, requireRole } = require('../middleware/auth');
 const {
   register, login,
-  requestOtp, verifyOtp,
+  requestPasswordReset, resetPassword,
   googleLogin, linkParent,
   getMe, refreshToken, logout,
 } = require('../controllers/authController');
@@ -17,7 +17,7 @@ const registerSchema = {
     name: z.string().min(1, 'Name is required'),
     email: z.preprocess((val) => (val === '' ? undefined : val), z.string().email('Valid email is required').optional()),
     phone: z.preprocess((val) => (val === '' ? undefined : val), z.string().min(10, 'Valid phone number required').optional()),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
     role: z.preprocess((val) => (typeof val === 'string' ? val.toUpperCase() : val), z.enum(['STUDENT', 'INSTRUCTOR', 'PARENT']).optional()),
     learnerType: z.preprocess((val) => (typeof val === 'string' ? val.toUpperCase() : val), z.enum(['SCHOOL', 'COLLEGE', 'SKILLS', 'EXAM']).optional()),
     username: z.string().optional(),
@@ -45,19 +45,15 @@ const loginSchema = {
   }),
 };
 
-const otpRequestSchema = {
-  body: z.object({
-    phone: z.string().min(10, 'Valid 10-digit phone number is required'),
-  }),
+const passwordResetRequestSchema = {
+  body: z.object({ email: z.string().email('Valid email is required') }),
 };
 
-const otpVerifySchema = {
+const passwordResetSchema = {
   body: z.object({
-    phone: z.string().min(10, 'Valid phone number is required'),
-    otp: z.string().length(6, 'OTP must be 6 digits'),
-    name: z.string().optional(),
-    role: z.preprocess((val) => (typeof val === 'string' ? val.toUpperCase() : val), z.enum(['STUDENT', 'INSTRUCTOR', 'PARENT']).optional()),
-    learnerType: z.preprocess((val) => (typeof val === 'string' ? val.toUpperCase() : val), z.enum(['SCHOOL', 'COLLEGE', 'SKILLS', 'EXAM']).optional()),
+    email: z.string().email('Valid email is required'),
+    code: z.string().regex(/^\d{6}$/, 'Reset code must be 6 digits'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
   }),
 };
 
@@ -86,11 +82,8 @@ const refreshSchema = {
 // Email/Password
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
-
-// Phone OTP
-router.post('/otp/send', validate(otpRequestSchema), requestOtp);
-router.post('/otp/request', validate(otpRequestSchema), requestOtp);
-router.post('/otp/verify', validate(otpVerifySchema), verifyOtp);
+router.post('/password-reset/request', validate(passwordResetRequestSchema), requestPasswordReset);
+router.post('/password-reset/confirm', validate(passwordResetSchema), resetPassword);
 
 // Google
 router.post('/google', validate(googleLoginSchema), googleLogin);
@@ -101,6 +94,6 @@ router.post('/link-parent', requireAuth, requireRole('PARENT'), validate(linkPar
 // Session
 router.get('/me', requireAuth, getMe);
 router.post('/refresh', validate(refreshSchema), refreshToken);
-router.post('/logout', logout);
+router.post('/logout', requireAuth, logout);
 
 module.exports = router;

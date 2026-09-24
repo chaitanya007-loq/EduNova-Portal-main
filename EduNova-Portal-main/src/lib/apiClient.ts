@@ -530,20 +530,14 @@ export async function apiClient<T = any, R = ApiResponse<T>>(
  * A. Authentication Module (`/api/auth`)
  */
 export const authApi = {
-  sendOtp: (phone: string): Promise<ApiResponse<{ message: string; expiresAt: string; devOtp?: string }>> =>
-    apiClient('/auth/otp/send', {
+  requestPasswordReset: (email: string): Promise<ApiResponse<{ message: string }>> =>
+    apiClient('/auth/password-reset/request', {
       method: 'POST',
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ email }),
     }),
 
-  verifyOtp: (payload: {
-    phone: string;
-    otp: string;
-    name?: string;
-    role?: 'STUDENT' | 'INSTRUCTOR' | 'PARENT';
-    learnerType?: 'SCHOOL' | 'COLLEGE' | 'SKILLS' | 'EXAM';
-  }): Promise<ApiResponse<{ user: User; token: string; refreshToken: string }>> =>
-    apiClient('/auth/otp/verify', {
+  resetPassword: (payload: { email: string; code: string; password: string }): Promise<ApiResponse<{ message: string }>> =>
+    apiClient('/auth/password-reset/confirm', {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
@@ -1069,5 +1063,3 @@ export const userApi = {
 };
 
 export default apiClient;
-
-

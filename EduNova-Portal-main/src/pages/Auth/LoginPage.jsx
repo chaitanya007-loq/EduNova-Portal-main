@@ -13,10 +13,6 @@ import {
   ArrowLeft,
   Sparkles,
   ShieldCheck,
-  Smartphone,
-  KeyRound,
-  RefreshCw,
-  User,
   CheckCircle2
 } from 'lucide-react';
 
@@ -31,28 +27,18 @@ export const EDUNOVA_ROLES = [
 ];
 
 export const LoginPage = () => {
-  const { login, loginGoogle, requestOtp, verifyOtp } = useAuth();
+  const { login, loginGoogle } = useAuth();
   const { updateLearnerType } = useLearner() || {};
   const navigate = useNavigate();
 
   // Selected Role / Dashboard Track State (Default: School Student)
   const [selectedRoleId, setSelectedRoleId] = useState('school');
 
-  // Mode: 'email' | 'phone'
-  const [authMode, setAuthMode] = useState('email');
-
   // Email / Password state
   const [email, setEmail] = useState('student@edunova.in');
   const [password, setPassword] = useState('student123');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-
-  // Phone OTP state
-  const [phone, setPhone] = useState('');
-  const [otp, setOtp] = useState('');
-  const [newName, setNewName] = useState('');
-  const [otpSent, setOtpSent] = useState(false);
-  const [devOtpHint, setDevOtpHint] = useState('');
 
   // Status
   const [error, setError] = useState('');
@@ -90,7 +76,7 @@ export const LoginPage = () => {
         navigate('/parent/dashboard');
       } else {
         // Log in as Student / Learner Role
-        await login(email, password);
+        const result = await login(email, password);
         if (updateLearnerType) updateLearnerType(activeRoleObj.track);
         navigate(activeRoleObj.route || '/dashboard');
       }
@@ -101,63 +87,7 @@ export const LoginPage = () => {
     }
   };
 
-  // 2. Request Phone OTP
-  const handleSendOtp = async (e) => {
-    e.preventDefault();
-    const cleanPhone = phone.trim().replace(/\D/g, '');
-    if (cleanPhone.length < 10) {
-      setError('Please enter a valid 10-digit mobile number.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setInfo('');
-
-    try {
-      const res = await requestOtp(cleanPhone);
-      setOtpSent(true);
-      setInfo('6-digit verification code sent successfully!');
-      if (res?.devOtp) {
-        setDevOtpHint(res.devOtp);
-      }
-    } catch (err) {
-      setError(err.message || 'Failed to send OTP. Please check backend server.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 3. Verify Phone OTP
-  const handleVerifyOtp = async (e) => {
-    e.preventDefault();
-    const cleanPhone = phone.trim().replace(/\D/g, '');
-    if (otp.length !== 6) {
-      setError('Please enter the 6-digit verification code.');
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-
-    try {
-      await verifyOtp({
-        phone: cleanPhone,
-        otp: otp.trim(),
-        name: newName.trim() || undefined,
-        role: activeRoleObj.id === 'parent' ? 'PARENT' : 'STUDENT',
-        learnerType: activeRoleObj.track.toUpperCase(),
-      });
-      if (updateLearnerType) updateLearnerType(activeRoleObj.track);
-      navigate(activeRoleObj.id === 'parent' ? '/parent/dashboard' : activeRoleObj.route);
-    } catch (err) {
-      setError(err.message || 'Invalid or expired OTP.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 4. Google Login Callback
+  // 2. Google Login Callback
   const handleGoogleSuccess = async (idToken) => {
     setLoading(true);
     setError('');
@@ -411,67 +341,8 @@ export const LoginPage = () => {
         <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.18)' }} />
       </div>
 
-      {/* Auth Mode Tabs (Email vs Phone OTP) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: '6px',
-          background: 'rgba(5, 8, 22, 0.6)',
-          padding: '5px',
-          borderRadius: '16px',
-          marginBottom: '20px',
-          border: '1px solid rgba(255, 255, 255, 0.14)'
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => { setAuthMode('email'); setError(''); }}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '12px',
-            background: authMode === 'email' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-            border: authMode === 'email' ? '1px solid rgba(56, 189, 248, 0.5)' : 'none',
-            color: authMode === 'email' ? '#38bdf8' : '#94a3b8',
-            fontWeight: 800,
-            fontSize: '0.84rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <Mail size={16} /> Email / Password
-        </button>
-
-        <button
-          type="button"
-          onClick={() => { setAuthMode('phone'); setError(''); }}
-          style={{
-            padding: '10px 14px',
-            borderRadius: '12px',
-            background: authMode === 'phone' ? 'rgba(56, 189, 248, 0.2)' : 'transparent',
-            border: authMode === 'phone' ? '1px solid rgba(56, 189, 248, 0.5)' : 'none',
-            color: authMode === 'phone' ? '#38bdf8' : '#94a3b8',
-            fontWeight: 800,
-            fontSize: '0.84rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '8px',
-            transition: 'all 0.2s ease'
-          }}
-        >
-          <Smartphone size={16} /> Phone OTP
-        </button>
-      </div>
-
-      {/* TAB 1: Email / Password Form */}
-      {authMode === 'email' && (
-        <>
+      {/* Email / Password Form */}
+      <>
           {/* Quick Demo Fill Pill */}
           <div
             onClick={fillRoleDemo}
@@ -582,6 +453,11 @@ export const LoginPage = () => {
                 Remember me on this device
               </label>
             </div>
+            <div style={{ textAlign: 'right', marginTop: '-8px' }}>
+              <Link to="/forgot-password" style={{ color: '#38bdf8', fontSize: '0.8rem', fontWeight: 700, textDecoration: 'none' }}>
+                Forgot password?
+              </Link>
+            </div>
 
             <button
               type="submit"
@@ -608,174 +484,7 @@ export const LoginPage = () => {
               <LogIn size={19} /> {loading ? 'Signing In...' : `Sign In as ${activeRoleObj.label}`}
             </button>
           </form>
-        </>
-      )}
-
-      {/* TAB 2: Phone OTP Form */}
-      {authMode === 'phone' && (
-        <>
-          {!otpSent ? (
-            <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              <div>
-                <label style={{ fontSize: '0.83rem', color: '#cbd5e1', marginBottom: '7px', display: 'block', fontWeight: 700 }}>
-                  Mobile Phone Number <span style={{ color: '#f43f5e' }}>*</span>
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Smartphone size={17} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#38bdf8' }} />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="9876543210"
-                    style={{
-                      width: '100%',
-                      paddingLeft: '44px',
-                      paddingTop: '13px',
-                      paddingBottom: '13px',
-                      boxSizing: 'border-box',
-                      background: 'rgba(6, 10, 26, 0.65)',
-                      border: '1px solid rgba(255, 255, 255, 0.18)',
-                      borderRadius: '14px',
-                      color: '#ffffff',
-                      fontSize: '0.92rem',
-                      backdropFilter: 'blur(12px)'
-                    }}
-                    required
-                  />
-                </div>
-                <span style={{ fontSize: '0.76rem', color: '#94a3b8', marginTop: '5px', display: 'block' }}>
-                  We will send a 6-digit cryptographic verification code (valid for 5 mins).
-                </span>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  marginTop: '6px',
-                  padding: '14px 20px',
-                  borderRadius: '14px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #7c3aed 100%)',
-                  color: '#ffffff',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
-                  fontWeight: 800,
-                  fontSize: '0.96rem',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  boxShadow: '0 8px 30px rgba(2, 132, 199, 0.45)'
-                }}
-              >
-                <Smartphone size={19} /> {loading ? 'Sending Code...' : 'Send 6-Digit OTP'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-              {devOtpHint && (
-                <div
-                  style={{
-                    padding: '11px 15px',
-                    borderRadius: '12px',
-                    background: 'rgba(56, 189, 248, 0.12)',
-                    border: '1px dashed #38bdf8',
-                    fontSize: '0.84rem',
-                    color: '#7dd3fc',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => setOtp(devOtpHint)}
-                  title="Click to auto-fill"
-                >
-                  <span>Development OTP Code: <strong style={{ color: '#ffffff' }}>{devOtpHint}</strong></span>
-                  <span style={{ color: '#38bdf8', fontWeight: 800 }}>Auto-fill</span>
-                </div>
-              )}
-
-              <div>
-                <label style={{ fontSize: '0.83rem', color: '#cbd5e1', marginBottom: '7px', display: 'block', fontWeight: 700 }}>
-                  Enter 6-Digit OTP for +91 {phone} <span style={{ color: '#f43f5e' }}>*</span>
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <KeyRound size={17} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#38bdf8' }} />
-                  <input
-                    type="text"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    placeholder="123456"
-                    style={{
-                      width: '100%',
-                      paddingLeft: '44px',
-                      paddingTop: '13px',
-                      paddingBottom: '13px',
-                      boxSizing: 'border-box',
-                      letterSpacing: '0.25em',
-                      fontSize: '1.15rem',
-                      fontWeight: 800,
-                      background: 'rgba(6, 10, 26, 0.65)',
-                      border: '1px solid rgba(255, 255, 255, 0.18)',
-                      borderRadius: '14px',
-                      color: '#ffffff',
-                      backdropFilter: 'blur(12px)'
-                    }}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button
-                  type="button"
-                  onClick={() => setOtpSent(false)}
-                  style={{
-                    padding: '12px 16px',
-                    borderRadius: '14px',
-                    background: 'rgba(255, 255, 255, 0.08)',
-                    border: '1px solid rgba(255, 255, 255, 0.18)',
-                    color: '#cbd5e1',
-                    fontSize: '0.84rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                  }}
-                >
-                  <RefreshCw size={15} /> Change Number
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  style={{
-                    flex: 1,
-                    padding: '12px 20px',
-                    borderRadius: '14px',
-                    background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 50%, #7c3aed 100%)',
-                    color: '#ffffff',
-                    border: '1px solid rgba(255, 255, 255, 0.25)',
-                    fontWeight: 800,
-                    fontSize: '0.94rem',
-                    cursor: loading ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    boxShadow: '0 8px 30px rgba(2, 132, 199, 0.45)',
-                  }}
-                >
-                  <LogIn size={18} /> {loading ? 'Verifying...' : 'Verify & Enter'}
-                </button>
-              </div>
-            </form>
-          )}
-        </>
-      )}
+      </>
 
       {/* Footer Link to Register */}
       <div style={{ textAlign: 'center', marginTop: '22px', fontSize: '0.88rem', color: '#94a3b8' }}>

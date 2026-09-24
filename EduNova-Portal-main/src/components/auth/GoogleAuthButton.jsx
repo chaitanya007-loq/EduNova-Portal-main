@@ -32,19 +32,26 @@ export const GoogleAuthButton = ({
 }) => {
   const [isGoogleRendered, setIsGoogleRendered] = useState(false);
   const buttonRef = useRef(null);
+  const callbacksRef = useRef({ onSuccess, onError });
+  const initializedRef = useRef(false);
   const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID || DEFAULT_CLIENT_ID;
 
   useEffect(() => {
+    callbacksRef.current = { onSuccess, onError };
+  }, [onSuccess, onError]);
+
+  useEffect(() => {
     const initGis = () => {
-      if (window.google?.accounts?.id && buttonRef.current) {
+      if (window.google?.accounts?.id && buttonRef.current && !initializedRef.current) {
         try {
+          initializedRef.current = true;
           window.google.accounts.id.initialize({
             client_id: clientId,
             callback: async (response) => {
               if (response.credential) {
-                onSuccess(response.credential);
+                callbacksRef.current.onSuccess(response.credential);
               } else {
-                onError?.(new Error('No credential returned by Google'));
+                callbacksRef.current.onError?.(new Error('No credential returned by Google'));
               }
             },
           });
@@ -52,12 +59,13 @@ export const GoogleAuthButton = ({
           window.google.accounts.id.renderButton(buttonRef.current, {
             theme: 'filled_black',
             size: 'large',
-            width: '100%',
+            width: 360,
             text: text.includes('Sign Up') ? 'signup_with' : 'signin_with',
             shape: 'rectangular',
           });
           setIsGoogleRendered(true);
         } catch (err) {
+          initializedRef.current = false;
           console.warn('Failed to initialize Google Sign-In:', err);
         }
       }
@@ -88,7 +96,7 @@ export const GoogleAuthButton = ({
     } else {
       initGis();
     }
-  }, [clientId, text, onSuccess, onError]);
+  }, [clientId, text]);
 
   const handleClick = () => {
     if (window.google?.accounts?.id) {

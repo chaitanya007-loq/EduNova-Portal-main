@@ -60,6 +60,49 @@ const createCourse = async (req, res) => {
   }
 };
 
+const getCourses = async (req, res) => {
+  try {
+    res.json({ success: true, data: await adminService.getCourses(req.query) });
+  } catch (error) {
+    res.status(error.status || 500).json({ success: false, message: error.message });
+  }
+};
+
+const updateCourse = async (req, res) => {
+  try {
+    const course = await adminService.updateCourse(req.params.id, req.body, req.user.id);
+    res.json({ success: true, message: 'Course updated', data: course });
+  } catch (error) {
+    res.status(error.status || 500).json({ success: false, message: error.message });
+  }
+};
+
+const getSubjects = async (req, res) => {
+  try {
+    res.json({ success: true, data: await adminService.getSubjects(req.query) });
+  } catch (error) {
+    res.status(error.status || 500).json({ success: false, message: error.message });
+  }
+};
+
+const createSubject = async (req, res) => {
+  try {
+    const subject = await adminService.createSubject(req.body, req.user.id);
+    res.status(201).json({ success: true, message: 'Subject created', data: subject });
+  } catch (error) {
+    res.status(error.status || 500).json({ success: false, message: error.message });
+  }
+};
+
+const updateSubject = async (req, res) => {
+  try {
+    const subject = await adminService.updateSubject(req.params.id, req.body, req.user.id);
+    res.json({ success: true, message: 'Subject updated', data: subject });
+  } catch (error) {
+    res.status(error.status || 500).json({ success: false, message: error.message });
+  }
+};
+
 /**
  * @desc    Moderate content (delete course or subject)
  * @route   DELETE /api/admin/content/:type/:id
@@ -79,5 +122,10 @@ module.exports = {
   getUsers,
   updateUserRole,
   createCourse,
+  getCourses,
+  updateCourse,
+  getSubjects,
+  createSubject,
+  updateSubject,
   deleteContent,
 };

@@ -126,6 +126,13 @@ const updateUserRole = async (userId, newRole, adminId) => {
   const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw { status: 404, message: 'User not found' };
 
+  if (user.role === 'ADMIN' && newRole !== 'ADMIN') {
+    const adminCount = await prisma.user.count({ where: { role: 'ADMIN' } });
+    if (adminCount <= 1) {
+      throw { status: 409, message: 'The last administrator cannot be demoted.' };
+    }
+  }
+
   const previousRole = user.role;
 
   const updatedUser = await prisma.$transaction(async (tx) => {
@@ -209,6 +216,87 @@ const createVerifiedCourse = async (data, adminId) => {
   return course;
 };
 
+const getCourses = async ({ search } = {}) => {
+  const where = search ? { OR: [{ title: { contains: search } }, { category: { contains: search } }] } : {};
+  return prisma.course.findMany({
+    where,
+    include: {
+      modules: { orderBy: { order: 'asc' } },
+      instructor: { select: { id: true, name: true, email: true } },
+      _count: { select: { enrollments: true } },
+    },
+    orderBy: { updatedAt: 'desc' },
+  });
+};
+
+const updateCourse = async (courseId, data, adminId) => {
+  const { title, description, category, difficulty, thumbnail, instructorId, modules } = data;
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.course.findUnique({ where: { id: courseId } });
+    if (!existing) throw { status: 404, message: 'Course not found' };
+    const course = await tx.course.update({
+      where: { id: courseId },
+      data: {
+        title, description, category, difficulty: difficulty || 'BEGINNER', thumbnail,
+        instructorId: instructorId || existing.instructorId,
+        ...(modules ? {
+          modules: {
+            deleteMany: {},
+            create: modules.map((module, index) => ({
+              title: module.title,
+              duration: module.duration || 0,
+              order: module.order || index + 1,
+            })),
+          },
+        } : {}),
+      },
+      include: { modules: { orderBy: { order: 'asc' } }, instructor: { select: { id: true, name: true } } },
+    });
+    await tx.adminAuditLog.create({
+      data: { adminId, action: 'UPDATE_COURSE', targetType: 'Course', targetId: courseId, details: { title } },
+    });
+    return course;
+  });
+};
+
+const getSubjects = async ({ search } = {}) => {
+  return prisma.subject.findMany({
+    where: search ? { OR: [{ name: { contains: search } }, { category: { contains: search } }] } : {},
+    include: { topics: { orderBy: { order: 'asc' } }, createdBy: { select: { id: true, name: true } } },
+    orderBy: { updatedAt: 'desc' },
+  });
+};
+
+const saveSubject = async (subjectId, data, adminId) => {
+  const { name, category, educationType, class: className, board, degree, branch, semester, exam, topics = [] } = data;
+  return prisma.$transaction(async (tx) => {
+    const subject = subjectId
+      ? await tx.subject.update({
+        where: { id: subjectId },
+        data: {
+          name, category, educationType: educationType || 'SCHOOL', class: className, board, degree, branch, semester, exam,
+          topics: { deleteMany: {}, create: topics.map((title, order) => ({ title, order: order + 1 })) },
+        },
+        include: { topics: { orderBy: { order: 'asc' } } },
+      })
+      : await tx.subject.create({
+        data: {
+          name, category, educationType: educationType || 'SCHOOL', class: className, board, degree, branch, semester, exam,
+          createdById: adminId,
+          topics: { create: topics.map((title, order) => ({ title, order: order + 1 })) },
+        },
+        include: { topics: { orderBy: { order: 'asc' } } },
+      });
+    await tx.adminAuditLog.create({
+      data: { adminId, action: subjectId ? 'UPDATE_SUBJECT' : 'CREATE_SUBJECT', targetType: 'Subject', targetId: subject.id, details: { name } },
+    });
+    return subject;
+  });
+};
+
+const createSubject = (data, adminId) => saveSubject(null, data, adminId);
+const updateSubject = (subjectId, data, adminId) => saveSubject(subjectId, data, adminId);
+
 /**
  * Moderate/delete content (courses or subjects)
  */
@@ -255,5 +343,10 @@ module.exports = {
   getUsers,
   updateUserRole,
   createVerifiedCourse,
+  getCourses,
+  updateCourse,
+  getSubjects,
+  createSubject,
+  updateSubject,
   deleteContent,
 };

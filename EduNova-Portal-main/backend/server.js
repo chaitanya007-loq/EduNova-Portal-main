@@ -10,11 +10,24 @@ const path = require('path');
 // Load environment variables
 dotenv.config({ path: path.join(__dirname, '.env') });
 
-const requiredEnvironment = ['DATABASE_URL', 'JWT_SECRET', 'FRONTEND_URL'];
+const requiredEnvironment = ['DATABASE_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET', 'FRONTEND_URL'];
 const missingEnvironment = requiredEnvironment.filter((name) => !process.env[name]);
 if (missingEnvironment.length > 0) {
   console.error(`❌ Missing required environment variables: ${missingEnvironment.join(', ')}`);
   process.exit(1);
+}
+
+if (process.env.NODE_ENV === 'production') {
+  const weakSecrets = ['your_jwt_secret_key_here', 'your_refresh_secret_key_here', 'change-me'];
+  const weakEnvironment = requiredEnvironment.filter((name) => (
+    name.startsWith('JWT_') && (
+      process.env[name].length < 32 || weakSecrets.some((value) => process.env[name].includes(value))
+    )
+  ));
+  if (weakEnvironment.length > 0) {
+    console.error(`❌ Production secrets are weak or unchanged: ${weakEnvironment.join(', ')}`);
+    process.exit(1);
+  }
 }
 
 const prisma = require('./config/db');
@@ -27,22 +40,12 @@ const server = http.createServer(app);
 const io = initSocket(server);
 
 // --------------- Middleware ---------------
-app.use(helmet());
+app.use(helmet({
+  crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+}));
 app.use(morgan('dev'));
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowedOrigins = new Set([
-      process.env.FRONTEND_URL,
-      'http://localhost:3000',
-      'http://127.0.0.1:3000',
-    ]);
-
-    if (!origin || allowedOrigins.has(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Origin is not allowed by CORS'));
-    }
-  },
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -50,10 +53,10 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // --------------- Security Rate Limiting ---------------
-const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
+const { apiLimiter, authLimiter, passwordResetLimiter } = require('./middleware/rateLimiter');
 app.use('/api/', apiLimiter);
 app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/otp', authLimiter);
+app.use('/api/auth/password-reset', passwordResetLimiter);
 
 // --------------- API Routes ---------------
 app.use('/api/auth', require('./routes/auth'));

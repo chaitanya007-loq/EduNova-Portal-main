@@ -16,6 +16,7 @@ import { LoginPage } from './pages/Auth/LoginPage';
 import { RegisterPage } from './pages/Auth/RegisterPage';
 import { ParentLoginPage } from './pages/Auth/ParentLoginPage';
 import { ParentRegisterPage } from './pages/Auth/ParentRegisterPage';
+import { ForgotPasswordPage } from './pages/Auth/ForgotPasswordPage';
 import { OnboardingPage } from './pages/Onboarding/OnboardingPage';
 import { StudentDashboardPage } from './pages/Dashboard/StudentDashboardPage';
 import { NotesPage } from './pages/Notes/NotesPage';
@@ -42,6 +43,7 @@ import { SettingsPage } from './pages/Settings/SettingsPage';
 import { ParentDashboardPage } from './pages/Dashboard/ParentDashboardPage';
 import { MyTasksPage } from './pages/Tasks/MyTasksPage';
 import { GameCenterPage } from './pages/Games/GameCenterPage';
+import { AdminDashboardPage } from './pages/Admin/AdminDashboardPage';
 import { ServerUnavailableBanner } from './components/common/ServerUnavailableBanner';
 
 export default function App() {
@@ -116,6 +118,7 @@ export default function App() {
                       <Route path="/parent/dashboard" element={<ProtectedRoute><ParentDashboardPage /></ProtectedRoute>} />
                       <Route path="/parent/performance" element={<ProtectedRoute><ParentDashboardPage /></ProtectedRoute>} />
                       <Route path="/parent/settings" element={<ProtectedRoute><ParentDashboardPage /></ProtectedRoute>} />
+                      <Route path="/admin" element={<ProtectedRoute><AdminDashboardPage /></ProtectedRoute>} />
                     </Route>
 
                     {/* Auth Shell */}
@@ -124,6 +127,7 @@ export default function App() {
                       <Route path="/parent-login" element={<ParentLoginPage />} />
                       <Route path="/parent-register" element={<ParentRegisterPage />} />
                       <Route path="/register" element={<RegisterPage />} />
+                      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     </Route>
 
                     {/* Catch-all redirect */}

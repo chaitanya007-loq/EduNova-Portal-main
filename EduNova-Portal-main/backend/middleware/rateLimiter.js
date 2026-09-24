@@ -29,9 +29,21 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
   message: {
     success: false,
-    message: 'Too many login or OTP attempts from this IP. Please try again after 15 minutes.',
+    message: 'Too many authentication attempts from this IP. Please try again after 15 minutes.',
     code: 'AUTH_RATE_LIMIT_EXCEEDED',
   },
 });
 
-module.exports = { apiLimiter, authLimiter };
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 20 : 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: 'Too many password reset attempts. Please try again later.',
+    code: 'PASSWORD_RESET_RATE_LIMIT_EXCEEDED',
+  },
+});
+
+module.exports = { apiLimiter, authLimiter, passwordResetLimiter };

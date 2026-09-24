@@ -1,8 +1,9 @@
 const prisma = require('../config/db');
 const argon2 = require('argon2');
 const jwt = require('jsonwebtoken');
-const otpService = require('./otpService');
+const crypto = require('crypto');
 const googleAuthService = require('./googleAuthService');
+const emailService = require('./emailService');
 
 // ── Argon2 config ────────────────────────────────────────────────────────────
 const ARGON2_OPTIONS = {
@@ -14,14 +15,14 @@ const ARGON2_OPTIONS = {
 
 // ── Token helpers ────────────────────────────────────────────────────────────
 
-const generateToken = (userId, role) => {
-  return jwt.sign({ id: userId, role }, process.env.JWT_SECRET, {
+const generateToken = (userId, role, tokenVersion = 0) => {
+  return jwt.sign({ id: userId, role, tokenVersion }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN || '7d',
   });
 };
 
-const generateRefreshToken = (userId) => {
-  return jwt.sign({ id: userId }, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, {
+const generateRefreshToken = (userId, tokenVersion = 0) => {
+  return jwt.sign({ id: userId, tokenVersion }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: '30d',
   });
 };
@@ -38,8 +39,8 @@ const safeUserResponse = (user) => {
  * Build full auth response with tokens
  */
 const authResponse = (user) => {
-  const token = generateToken(user.id, user.role);
-  const refreshToken = generateRefreshToken(user.id);
+  const token = generateToken(user.id, user.role, user.tokenVersion);
+  const refreshToken = generateRefreshToken(user.id, user.tokenVersion);
   return {
     user: safeUserResponse(user),
     token,
@@ -122,7 +123,7 @@ const login = async ({ email, phone, studentUsername, password }) => {
   }
 
   if (!user) throw { status: 401, message: 'Invalid credentials' };
-  if (!user.passwordHash) throw { status: 401, message: 'This account uses OTP or social login. No password set.' };
+  if (!user.passwordHash) throw { status: 401, message: 'This account does not have password login enabled.' };
 
   // Verify with Argon2 (or legacy bcrypt with auto-migration to Argon2)
   let isMatch = false;
@@ -158,60 +159,76 @@ const login = async ({ email, phone, studentUsername, password }) => {
   return authResponse(user);
 };
 
-// ════════════════════════════════════════════════════════════════════════════
-// 3. PHONE OTP — REQUEST
-// ════════════════════════════════════════════════════════════════════════════
+const requestPasswordReset = async (email) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const genericResponse = { message: 'If an account exists for that email, a reset code has been sent.' };
+  const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+  if (!user || !user.passwordHash) return genericResponse;
 
-const requestOtp = async (phone) => {
-  return await otpService.sendOtp(phone);
-};
-
-// ════════════════════════════════════════════════════════════════════════════
-// 4. PHONE OTP — VERIFY & LOGIN/REGISTER
-// ════════════════════════════════════════════════════════════════════════════
-
-const verifyOtpAndLogin = async ({ phone, otp, name, role, learnerType }) => {
-  // Verify the OTP first
-  await otpService.verifyOtp(phone, otp);
-
-  // Check if user exists with this phone
-  let user = await prisma.user.findUnique({
-    where: { phone },
-    include: { learnerProfile: true },
+  const code = crypto.randomInt(100000, 1000000).toString();
+  const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+  await prisma.passwordResetCode.updateMany({
+    where: { email: normalizedEmail, consumed: false },
+    data: { consumed: true },
+  });
+  await prisma.passwordResetCode.create({
+    data: {
+      email: normalizedEmail,
+      codeHash,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+    },
   });
 
-  if (user) {
-    // Existing user — login
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { updatedAt: new Date() },
+  try {
+    await emailService.sendPasswordResetCode(normalizedEmail, code);
+  } catch (error) {
+    await prisma.passwordResetCode.updateMany({
+      where: { email: normalizedEmail, codeHash, consumed: false },
+      data: { consumed: true },
     });
-    return authResponse(user);
+    throw error;
+  }
+  return genericResponse;
+};
+
+const resetPasswordWithCode = async ({ email, code, password }) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  const resetCode = await prisma.passwordResetCode.findFirst({
+    where: { email: normalizedEmail, consumed: false },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (!resetCode || resetCode.expiresAt < new Date()) {
+    throw { status: 400, message: 'Invalid or expired reset code.' };
+  }
+  if (resetCode.attempts >= 5) {
+    throw { status: 429, message: 'Too many invalid code attempts. Request a new code.' };
   }
 
-  // New user — register
-  if (!name) throw { status: 400, message: 'Name is required for new registration' };
+  const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+  if (codeHash !== resetCode.codeHash) {
+    await prisma.passwordResetCode.update({
+      where: { id: resetCode.id },
+      data: { attempts: { increment: 1 } },
+    });
+    throw { status: 400, message: 'Invalid or expired reset code.' };
+  }
 
-  user = await prisma.user.create({
-    data: {
-      name,
-      phone,
-      role: role || 'STUDENT',
-      learnerType: learnerType || 'SCHOOL',
-      ...((!role || role === 'STUDENT') && {
-        learnerProfile: {
-          create: { xp: 0, level: 1, streakDays: 0 },
-        },
-      }),
-    },
-    include: { learnerProfile: true },
-  });
-
-  return authResponse(user);
+  const passwordHash = await argon2.hash(password, ARGON2_OPTIONS);
+  await prisma.$transaction([
+    prisma.user.update({
+      where: { email: normalizedEmail },
+      data: { passwordHash, tokenVersion: { increment: 1 } },
+    }),
+    prisma.passwordResetCode.update({
+      where: { id: resetCode.id },
+      data: { consumed: true },
+    }),
+  ]);
+  return { message: 'Password reset successfully. You can now sign in.' };
 };
 
 // ════════════════════════════════════════════════════════════════════════════
-// 5. GOOGLE LOGIN
+// 3. GOOGLE LOGIN
 // ════════════════════════════════════════════════════════════════════════════
 
 const googleLogin = async ({ idToken, role, learnerType }) => {
@@ -275,13 +292,14 @@ const getMe = async (userId) => {
 
 const refreshAccessToken = async (refreshToken) => {
   try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET, { algorithms: ['HS256'] });
     const user = await prisma.user.findUnique({ where: { id: decoded.id } });
 
     if (!user) throw { status: 401, message: 'User not found' };
+    if (decoded.tokenVersion !== user.tokenVersion) throw { status: 401, message: 'Session has been revoked. Please sign in again.' };
 
-    const token = generateToken(user.id, user.role);
-    const rotatedRefreshToken = generateRefreshToken(user.id);
+    const token = generateToken(user.id, user.role, user.tokenVersion);
+    const rotatedRefreshToken = generateRefreshToken(user.id, user.tokenVersion);
     return { token, refreshToken: rotatedRefreshToken };
   } catch (error) {
     if (error.status) throw error;
@@ -291,7 +309,7 @@ const refreshAccessToken = async (refreshToken) => {
 
 module.exports = {
   register, login,
-  requestOtp, verifyOtpAndLogin,
+  requestPasswordReset, resetPasswordWithCode,
   googleLogin,
   linkParentToStudent,
   getMe, refreshAccessToken, generateToken, generateRefreshToken,

@@ -35,7 +35,7 @@ const requireAuth = async (req, res, next) => {
 
   try {
     // Verify JWT
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
 
     // Fetch user from DB
     const user = await prisma.user.findUnique({
@@ -50,6 +50,7 @@ const requireAuth = async (req, res, next) => {
         avatar: true,
         studentUsername: true,
         googleId: true,
+        tokenVersion: true,
         createdAt: true,
       },
     });
@@ -58,6 +59,14 @@ const requireAuth = async (req, res, next) => {
       return res.status(401).json({
         success: false,
         message: 'User account no longer exists.',
+      });
+    }
+
+    if (decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({
+        success: false,
+        message: 'Session has been revoked. Please sign in again.',
+        code: 'SESSION_REVOKED',
       });
     }
 

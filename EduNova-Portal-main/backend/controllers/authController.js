@@ -31,28 +31,18 @@ const login = async (req, res) => {
   }
 };
 
-/**
- * @desc    Request phone OTP
- * @route   POST /api/auth/otp/request
- */
-const requestOtp = async (req, res) => {
+const requestPasswordReset = async (req, res) => {
   try {
-    const result = await authService.requestOtp(req.body.phone);
+    const result = await authService.requestPasswordReset(req.body.email);
     res.json({ success: true, data: result });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message });
   }
 };
 
-/**
- * @desc    Verify OTP and login/register
- * @route   POST /api/auth/otp/verify
- */
-const verifyOtp = async (req, res) => {
+const resetPassword = async (req, res) => {
   try {
-    const result = await authService.verifyOtpAndLogin(req.body);
-    setTokenCookie(res, result.token);
-    setRefreshTokenCookie(res, result.refreshToken);
+    const result = await authService.resetPasswordWithCode(req.body);
     res.json({ success: true, data: result });
   } catch (error) {
     res.status(error.status || 500).json({ success: false, message: error.message });
@@ -128,16 +118,20 @@ const refreshToken = async (req, res) => {
  * @route   POST /api/auth/logout
  */
 const logout = async (req, res) => {
+  await require('../config/db').user.update({
+    where: { id: req.user.id },
+    data: { tokenVersion: { increment: 1 } },
+  });
   res.cookie('edunova_token', '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     expires: new Date(0),
   });
   res.cookie('refresh_token', '', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     expires: new Date(0),
   });
   res.json({ success: true, message: 'Logged out successfully' });
@@ -152,7 +146,7 @@ const setTokenCookie = (res, token) => {
   res.cookie('edunova_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
@@ -161,14 +155,14 @@ const setRefreshTokenCookie = (res, token) => {
   res.cookie('refresh_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'strict',
     maxAge: 30 * 24 * 60 * 60 * 1000,
   });
 };
 
 module.exports = {
   register, login,
-  requestOtp, verifyOtp,
+  requestPasswordReset, resetPassword,
   googleLogin, linkParent,
   getMe, refreshToken, logout,
 };

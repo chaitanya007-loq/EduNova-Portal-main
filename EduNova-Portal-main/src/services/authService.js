@@ -75,32 +75,7 @@ export const registerUser = async (name, email, password, learnerType = 'school'
 };
 
 /**
- * 3. Request Phone OTP
- */
-export const requestOtp = async (phone) => {
-  try {
-    const res = await authApi.sendOtp(phone);
-    return res.data; // contains devOtp in development
-  } catch (error) {
-    throw error;
-  }
-};
-
-/**
- * 4. Verify Phone OTP & Login / Register
- */
-export const verifyOtpAndLogin = async ({ phone, otp, name, role = 'STUDENT', learnerType = 'SCHOOL' }) => {
-  try {
-    const res = await authApi.verifyOtp({ phone, otp, name, role, learnerType });
-    const user = saveSession(res.data.user, res.data.token);
-    return { success: true, user, token: res.data.token };
-  } catch (error) {
-    throw error;
-  }
-};
-
-/**
- * 5. Google Login / Register
+ * 3. Google Login / Register
  */
 export const loginWithGoogle = async (idToken, role = 'STUDENT', learnerType = 'SCHOOL') => {
   try {
@@ -113,7 +88,7 @@ export const loginWithGoogle = async (idToken, role = 'STUDENT', learnerType = '
 };
 
 /**
- * 6. Parent Login
+ * 4. Parent Login
  */
 export const loginParentUser = async (studentUsername, parentPassword) => {
   const cleanUsername = (studentUsername || '').trim().toLowerCase().replace(/^@/, '');
@@ -130,7 +105,7 @@ export const loginParentUser = async (studentUsername, parentPassword) => {
 };
 
 /**
- * 7. Parent Register
+ * 5. Parent Register
  */
 export const registerParentUser = async (parentName, parentEmail, parentPassword, studentUsername, phone = '') => {
   const cleanUsername = (studentUsername || '').trim().toLowerCase().replace(/^@/, '');
@@ -153,7 +128,7 @@ export const registerParentUser = async (parentName, parentEmail, parentPassword
 };
 
 /**
- * 8. Current Session
+ * 6. Current Session
  */
 export const getCurrentUserSession = () => {
   const stored = localStorage.getItem('edunova_user');
@@ -166,7 +141,7 @@ export const getCurrentUserSession = () => {
 };
 
 /**
- * 9. Logout
+ * 7. Logout
  */
 export const logoutUser = async () => {
   try {

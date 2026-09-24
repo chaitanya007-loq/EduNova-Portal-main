@@ -308,16 +308,16 @@ apiClient.delete = (url, options = {}) => apiClient(url, { ...options, method: '
  * A. Authentication Module (`/api/auth`)
  */
 export const authApi = {
-  sendOtp: (phone) =>
-    apiClient('/auth/otp/send', {
+  requestPasswordReset: (email) =>
+    apiClient('/auth/password-reset/request', {
       method: 'POST',
-      body: JSON.stringify({ phone }),
+      body: JSON.stringify({ email }),
     }),
 
-  verifyOtp: ({ phone, otp, name, role = 'STUDENT', learnerType = 'SCHOOL' }) =>
-    apiClient('/auth/otp/verify', {
+  resetPassword: ({ email, code, password }) =>
+    apiClient('/auth/password-reset/confirm', {
       method: 'POST',
-      body: JSON.stringify({ phone, otp, name, role, learnerType }),
+      body: JSON.stringify({ email, code, password }),
     }),
 
   googleLogin: ({ idToken, role = 'STUDENT', learnerType = 'SCHOOL' }) =>
@@ -447,6 +447,11 @@ export const gamificationApi = {
 export const adminApi = {
   getMetrics: () => apiClient('/admin/metrics'),
 
+  getCourses: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiClient(`/admin/courses${query ? `?${query}` : ''}`);
+  },
+
   getUsers: (params = {}) => {
     const query = new URLSearchParams(params).toString();
     return apiClient(`/admin/users${query ? `?${query}` : ''}`);
@@ -461,6 +466,29 @@ export const adminApi = {
   createCourse: (data) =>
     apiClient('/admin/courses', {
       method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateCourse: (id, data) =>
+    apiClient(`/admin/courses/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  getSubjects: (params = {}) => {
+    const query = new URLSearchParams(params).toString();
+    return apiClient(`/admin/subjects${query ? `?${query}` : ''}`);
+  },
+
+  createSubject: (data) =>
+    apiClient('/admin/subjects', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  updateSubject: (id, data) =>
+    apiClient(`/admin/subjects/${id}`, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     }),
 
@@ -668,4 +696,3 @@ export const noteApi = {
 };
 
 export default apiClient;
-

@@ -82,31 +82,8 @@ async function runTests() {
   });
   console.log('6. RBAC Role Restriction (Student -> Admin Route):', rbacDenied.status === 403 ? '✅ 403 Forbidden' : '❌ Unrestricted', rbacDenied.data?.message);
 
-  // 7. Phone OTP Flow (6-digit Argon2 hashed, 5-min expiry, max 3 attempts)
-  const phone = '919876543210';
-  const otpReq = await request('/api/auth/otp/request', 'POST', { phone });
-  const devOtp = otpReq.data?.data?.devOtp;
-  console.log('7a. OTP Request:', otpReq.status === 200 ? '✅ Sent' : '❌ Failed', 'devOtp:', devOtp);
-
-  // 7b. Invalid OTP attempt (Test rate limiter / attempts count)
-  const invalidOtpRes = await request('/api/auth/otp/verify', 'POST', {
-    phone,
-    otp: '000000',
-    name: 'New OTP Student',
-  });
-  console.log('7b. Invalid OTP Attempt:', invalidOtpRes.status === 401 ? '✅ Correctly Rejected' : '❌ Allowed', invalidOtpRes.data?.message);
-
-  // 7c. Valid OTP verification
-  const validOtpRes = await request('/api/auth/otp/verify', 'POST', {
-    phone,
-    otp: devOtp,
-    name: 'New OTP Student',
-    role: 'STUDENT',
-  });
-  console.log('7c. Valid OTP Verification & Login:', validOtpRes.status === 200 ? '✅ Success' : '❌ Failed', 'Token issued:', !!validOtpRes.data?.data?.token);
-
-  // 8. Parent Linking Flow
-  // 8a. Login as parent
+  // 7. Parent Linking Flow
+  // 7a. Login as parent
   let parentLogin = await request('/api/auth/login', 'POST', {
     email: 'parent@edunova.in',
     password: 'parent123',
@@ -121,7 +98,7 @@ async function runTests() {
     });
   }
   const parentToken = parentLogin.data?.data?.token;
-  console.log('8a. Parent Login/Register:', [200, 201].includes(parentLogin.status) ? '✅ Success' : '❌ Failed');
+  console.log('7a. Parent Login/Register:', [200, 201].includes(parentLogin.status) ? '✅ Success' : '❌ Failed');
 
   // 8b. Link parent to student via studentUsername
   const linkRes = await request('/api/auth/link-parent', 'POST', {
@@ -156,4 +133,3 @@ async function runTests() {
 }
 
 runTests().catch(console.error);
-

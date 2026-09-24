@@ -16,13 +16,8 @@ async function testAllStep3Features() {
 
   console.log(`✅ Loaded Test Users: Student (${student.name}), Admin (${admin.name}), Parent (${parent.name})`);
 
-  // ── MODULE A: Auth Module ──────────────────────────────────────────────────
-  console.log('\n--- Testing Module A: Auth ---');
-  const otpRes = await authService.requestOtp('9876543299');
-  console.log('1. POST /otp/send:', !!otpRes.expiresAt ? '✅ Success' : '❌ Failed');
-
-  // ── MODULE B: Subjects & Courses ───────────────────────────────────────────
-  console.log('\n--- Testing Module B: Subjects & Courses ---');
+  // ── MODULE A: Subjects & Courses ──────────────────────────────────────────
+  console.log('\n--- Testing Module A: Subjects & Courses ---');
   const subjects = await subjectService.getSubjects({ educationType: 'SCHOOL' });
   const testSubject = subjects[0];
   console.log(`2. GET /api/subjects: ✅ Found ${subjects.length} subjects (First: ${testSubject.name})`);

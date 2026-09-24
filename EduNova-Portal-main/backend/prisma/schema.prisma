@@ -61,7 +61,7 @@ enum MessageType {
   FILE
 }
 
-enum SkillExchangeStatus {
+enum ExchangeStatus {
   PENDING
   ACCEPTED
   REJECTED
@@ -83,6 +83,7 @@ model User {
   studentUsername  String?     // Parent uses this to link to their child
   avatar          String?
   googleId        String?     @unique
+  tokenVersion    Int         @default(0)
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
@@ -111,22 +112,18 @@ model User {
   @@map("users")
 }
 
-// ============================================================================
-// 2. OTP VERIFICATION — Phone-based authentication
-// ============================================================================
+model PasswordResetCode {
+  id         String   @id @default(cuid())
+  email      String
+  codeHash   String
+  attempts   Int      @default(0)
+  expiresAt  DateTime
+  consumed   Boolean  @default(false)
+  createdAt  DateTime @default(now())
 
-model OtpVerification {
-  id          String   @id @default(cuid())
-  phone       String
-  otpHash     String
-  attempts    Int      @default(0)
-  expiresAt   DateTime
-  consumed    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-
-  @@index([phone])
-  @@index([phone, consumed])
-  @@map("otp_verifications")
+  @@index([email, consumed])
+  @@index([expiresAt])
+  @@map("password_reset_codes")
 }
 
 // ============================================================================
@@ -442,7 +439,7 @@ model SkillExchange {
   receiverId     String
   skillOffered   String
   skillWanted    String
-  status         SkillExchangeStatus @default(PENDING)
+  status         ExchangeStatus @default(PENDING)
   conversationId String?             @unique
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
@@ -618,5 +615,3 @@ model Note {
   @@index([topicId])
   @@map("notes")
 }
-
-
