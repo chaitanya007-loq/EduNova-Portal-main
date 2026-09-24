@@ -140,11 +140,7 @@ The frontend needs its own environment file for the API URL:
 Copy-Item .env.example .env
 ```
 
-The committed root `.env.example` contains:
-
-```env
-REACT_APP_API_URL=http://localhost:5000/api
-```
+The resulting `.env` is private and must never be committed.
 
 ### 3. Install backend dependencies
 
@@ -159,33 +155,10 @@ npm install
 Copy-Item .env.example .env
 ```
 
-Edit `backend/.env` and set real local values:
+Edit the private `backend/.env` using the non-secret variable names in
+`backend/.env.example`. Do not paste credentials, passwords, tokens, or API
+keys into this README or any tracked file.
 
-```env
-PORT=5000
-NODE_ENV="development"
-DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/edunova_db?schema=public"
-
-JWT_SECRET="replace_with_a_long_random_secret"
-JWT_REFRESH_SECRET="replace_with_a_different_long_random_secret"
-JWT_EXPIRES_IN=7d
-
-FRONTEND_URL="http://localhost:3000"
-
-GEMINI_API_KEY="your_gemini_api_key"
-GEMINI_MODEL=gemini-2.5-flash
-GOOGLE_CLIENT_ID="your_google_oauth_web_client_id"
-
-# Gmail App Password or another SMTP provider
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=465
-SMTP_SECURE=true
-SMTP_USER="sender@gmail.com"
-SMTP_PASS="gmail_app_password"
-MAIL_FROM="EduNova <sender@gmail.com>"
-```
-
-Never commit `backend/.env`, SMTP passwords, JWT secrets, or API keys.
 
 ### 5. Prepare PostgreSQL and Prisma
 
@@ -310,12 +283,9 @@ that App Password as `SMTP_PASS`; do not use the normal Gmail password.
 
 ## Sage AI configuration
 
-Sage AI endpoints are available under `/api/ai`. Configure:
-
-```env
-GEMINI_API_KEY="your_gemini_api_key"
-GEMINI_MODEL=gemini-2.5-flash
-```
+Sage AI endpoints are available under `/api/ai`. Configure the private
+`GEMINI_API_KEY` value in `backend/.env` using
+`backend/.env.example` as the variable-name reference. Never publish the key.
 
 Without a Gemini key, AI requests return a configuration error rather than
 pretending that a live model response was generated.
