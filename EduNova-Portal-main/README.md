@@ -132,14 +132,28 @@ From the repository root:
 npm install
 ```
 
-### 2. Install backend dependencies
+### 2. Configure the frontend
+
+The frontend needs its own environment file for the API URL:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+The committed root `.env.example` contains:
+
+```env
+REACT_APP_API_URL=http://localhost:5000/api
+```
+
+### 3. Install backend dependencies
 
 ```powershell
 cd backend
 npm install
 ```
 
-### 3. Create the backend environment file
+### 4. Create the backend environment file
 
 ```powershell
 Copy-Item .env.example .env
@@ -160,6 +174,7 @@ FRONTEND_URL="http://localhost:3000"
 
 GEMINI_API_KEY="your_gemini_api_key"
 GEMINI_MODEL=gemini-2.5-flash
+GOOGLE_CLIENT_ID="your_google_oauth_web_client_id"
 
 # Gmail App Password or another SMTP provider
 SMTP_HOST="smtp.gmail.com"
@@ -172,18 +187,30 @@ MAIL_FROM="EduNova <sender@gmail.com>"
 
 Never commit `backend/.env`, SMTP passwords, JWT secrets, or API keys.
 
-### 4. Prepare PostgreSQL and Prisma
+### 5. Prepare PostgreSQL and Prisma
+
+Create the local database once if it does not already exist:
+
+```powershell
+createdb -U postgres edunova_db
+```
+
+If `createdb` is not on `PATH`, create a database named `edunova_db` using
+pgAdmin or the PostgreSQL SQL Shell instead.
 
 ```powershell
 cd backend
 npx prisma generate
-npx prisma migrate deploy
+npm run db:setup
 ```
 
-For a disposable local development database that should also be seeded:
+`npm run db:setup` applies all committed migrations and seeds local demo data.
+It is intended for a new local database. For an existing database where the
+schema is already migrated, use:
 
 ```powershell
-npm run db:setup
+npx prisma migrate deploy
+npx prisma generate
 ```
 
 `prisma migrate reset` deletes local database data. Use it only when the
@@ -212,6 +239,20 @@ The frontend runs at `http://localhost:3000`.
 
 The frontend API client uses `REACT_APP_API_URL` when provided, then falls back
 to `http://localhost:5000/api` and `http://localhost:5001/api`.
+
+## Demo accounts
+
+The development seed creates these local accounts:
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@edunova.in` | `admin123` |
+| Instructor | `instructor@edunova.in` | `instructor123` |
+| Student | `student@edunova.in` | `student123` |
+| Parent | `parent@edunova.in` | `parent123` |
+
+Use these accounts only in a local development database. Change or remove them
+before deploying anywhere accessible to other users.
 
 ## Authentication and security
 
@@ -364,6 +405,24 @@ node --check server.js
 This is expected once during startup when no user session exists. After login,
 the backend sets HTTP-only cookies and the client stores the token needed for
 authenticated API calls.
+
+### Fresh clone checklist
+
+If a friend downloads or clones the repository, they must not copy your local
+`node_modules`, `.env`, PostgreSQL data, or build folder. They should:
+
+1. Install Node.js and PostgreSQL.
+2. Run `npm install` in the root.
+3. Run `npm install` in `backend/`.
+4. Copy the root `.env.example` to root `.env`.
+5. Copy `backend/.env.example` to `backend/.env`.
+6. Create the `edunova_db` PostgreSQL database.
+7. Set the PostgreSQL password and JWT secrets in `backend/.env`.
+8. Run `cd backend; npm run db:setup`.
+9. Start the backend and frontend in separate terminals.
+
+The repository intentionally ignores `.env`, `node_modules`, and `build`, so
+each developer generates those locally.
 
 ### `401 Unauthorized` for `/api/ai/history`
 
